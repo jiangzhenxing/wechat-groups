@@ -2,14 +2,13 @@
 # -*- coding: UTF-8 -*-
 import tkinter as tk
 from tkinter import font
-from functools import reduce
 
 """
 群列表界面
 """
 WIDTH = 450         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
-ROW_HEIGHT = 32     # 行高
+ROW_HEIGHT = 30     # 行高
 BGCOLORS = ['white', '#FFE']    # 行的背景色
 
 class Group:
@@ -193,15 +192,26 @@ class GroupFrame(tk.Frame):
         canvas.create_window((0, 0), window=self.group_list, anchor=tk.NW)  # create_window
         self.canvas = canvas
 
-        # print('vbar.bindtags:', vbar.bindtags())
-        # def move():
-        #     b,e = vbar.get()
-        #     d=0.1
-        #     vbar.set(b+d, e+d)
-        #     canvas.yview(tk.MOVETO, b+d)
-        #     print(b+d, e+d)
-        #
-        # canvas.bind('<MouseWheel>', move)
+        def move(event):
+            b,e = vbar.get()
+            h = e - b
+            # d=0.1
+            print('event.delta:', event.delta)
+            d = vbar.delta(deltax=0, deltay=event.delta)
+            print('fractional:', d)
+            b1 = max(b + d, 0)  # 最小是0
+            e1 = min(e + d, 1)  # 最大是1
+            if b1 == 0:
+                e1 = h
+            elif e1 == 1:
+                b1 = 1 - h
+            vbar.set(b1, e1)
+            canvas.yview(tk.MOVETO, b1)
+            print(b1, e1)
+            # self.canvas.yview_scroll(-1 * (event.delta / 120), "units")
+
+        canvas.bind_all('<MouseWheel>', move)
+        # self.group_list.bind('<MouseWheel>', move, add=True)
 
     def search(self, bdz='', zxl='', fzxl='', keyword=''):
         """
