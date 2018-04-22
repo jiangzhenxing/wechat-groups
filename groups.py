@@ -1,26 +1,28 @@
-import tkinter as tk
-from tkinter import font
-
 """
 群列表
 """
+
+import tkinter as tk
+from tkinter import font
+
 WIDTH = 500         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
-ROW_HEIGHT = 30     # 行高
+ROW_HEIGHT = 26     # 行高
 BGCOLORS = ['white', '#FFE']    # 奇偶行的背景色
 WORDS1 = set(list('`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?'))
 
-
 def substr(string, width):
     """
-    截取固定显示宽度的字符，WORDS1中的字符宽度为1，汉字宽度为2
+    截取固定显示宽度的字符，WORDS1中的字符宽度为1.5，汉字宽度为2
     """
     w = 0
     for i,c in enumerate(string):
-        w += 1.5 if c in WORDS1 else 2
+        w += 1 if c in WORDS1 else 1.3
         if w > width:
+            i -= 1
             break
-    return string[:i]
+    # print(w, width, i)
+    return string[:i+1]
 
 
 class Group:
@@ -51,7 +53,7 @@ class GroupTitle:
         bgcolor = '#DDD'
         ft = font.Font(size=14, weight='bold')
         sticky = tk.N + tk.E + tk.S + tk.W
-        tk.Checkbutton(master, variable=self._value, command=command, bg=bgcolor, pady=5).grid(row=row, column=0, sticky=sticky)
+        tk.Checkbutton(master, variable=self._value, command=command, bg=bgcolor, pady=3).grid(row=row, column=0, sticky=sticky)
         tk.Label(master, text='变电站', bg=bgcolor, width=10, font=ft).grid(row=row, column=1, sticky=sticky)
         tk.Label(master, text='10KV主线路', bg=bgcolor, width=10, font=ft).grid(row=row, column=2, sticky=sticky)
         tk.Label(master, text='分支线路', bg=bgcolor, width=10, font=ft).grid(row=row, column=3, sticky=sticky)
@@ -72,14 +74,14 @@ class GroupRow:
         self.visible = True
 
         bgcolor = BGCOLORS[row % 2]
-        ft = font.Font(size=14)
+        ft = font.Font(size=12)
         sticky = tk.N + tk.E + tk.S + tk.W
 
-        self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=5)
-        self.lb_bdz = tk.Label(master, text=substr(group.bdz, 14), width=11, bg=bgcolor, font=ft)
-        self.lb_zxl = tk.Label(master, text=substr(group.zxl, 14), width=11, bg=bgcolor, font=ft)
-        self.lb_fzxl = tk.Label(master, text=substr(group.fzxl, 14), width=11, bg=bgcolor, font=ft)
-        self.lb_name = tk.Label(master, text=substr(group.name, 20), width=18, bg=bgcolor, font=ft)
+        self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=3)
+        self.lb_bdz = tk.Label(master, text=substr(group.bdz, 11), width=11, bg=bgcolor, font=ft)
+        self.lb_zxl = tk.Label(master, text=substr(group.zxl, 11), width=11, bg=bgcolor, font=ft)
+        self.lb_fzxl = tk.Label(master, text=substr(group.fzxl, 11), width=11, bg=bgcolor, font=ft)
+        self.lb_name = tk.Label(master, text=substr(group.name, 18), width=19, bg=bgcolor, font=ft)
         self.columns = [self.ckb, self.lb_bdz, self.lb_zxl, self.lb_fzxl, self.lb_name]
         for i,c in enumerate(self.columns):
             c.grid(row=row, column=i, sticky=sticky)
@@ -124,6 +126,10 @@ class GroupRow:
             c.configure(bg=BGCOLORS[row_num % 2])
         self.visible = True
 
+    def bind(self, event, func, add=None):
+        for w in self.columns:
+            w.bind(event, func, add=add)
+
 
 class GroupList(tk.Frame):
     """
@@ -135,8 +141,6 @@ class GroupList(tk.Frame):
         self.groups = groups
         for row, group in enumerate(groups):
             group.row = GroupRow(self,row+1,group)
-        self.total = tk.Label(self, text='共 ' + str(len(groups)) + ' 个群', font=font.Font(size=14))
-        self.total.grid(row=len(groups)+1, column=4)
 
     def search(self, bdz='', zxl='', fzxl='', keyword=''):
         """
@@ -153,7 +157,6 @@ class GroupList(tk.Frame):
                 n += 1
             else:
                 row.hide()
-        self.total.configure(text='共 ' + str(n) + ' 个群')
         return n
 
     def show(self, groups):
@@ -167,9 +170,9 @@ class GroupList(tk.Frame):
 
     def get_selected(self):
         """
-        获取所有可见的并且选中的群名称
+        获取所有可见的并且选中的群
         """
-        return [group.name for group in self.groups if group.row.visible and group.row.seleted()]
+        return [group for group in self.groups if group.row.visible and group.row.seleted()]
 
     def toggle(self):
         """
@@ -197,6 +200,11 @@ class GroupList(tk.Frame):
             if group.row.visible:
                 group.row.deselect()
 
+    def bind(self, sequence=None, func=None, add=None):
+        super().bind(sequence, func, add)
+        for g in self.groups:
+            g.row.bind(sequence, func, add)
+
 
 class GroupFrame(tk.Frame):
     """
@@ -204,7 +212,7 @@ class GroupFrame(tk.Frame):
     """
     def __init__(self, master, groups):
         tk.Frame.__init__(self, master=master)
-        canvas = tk.Canvas(self, bg='green', bd='1', width=WIDTH, height=HEIGHT, scrollregion=(0, 0, WIDTH, ROW_HEIGHT * (len(groups)+2))) #创建canvas
+        canvas = tk.Canvas(self, bg='#EEE', bd='1', width=WIDTH, height=HEIGHT, scrollregion=(0, 0, WIDTH, ROW_HEIGHT * (len(groups)+1))) #创建canvas
         canvas.grid(row=0, column=0, sticky=tk.N + tk.S+tk.E+tk.W) #放置canvas的位置
 
         # 创建GroupList并放到canvas里
@@ -217,13 +225,19 @@ class GroupFrame(tk.Frame):
         canvas.create_window((0, 0), window=self.group_list, anchor=tk.NW)  # create_window
         self.canvas = canvas
 
+        self.help_btn = tk.Button(self, text='帮助信息', font=font.Font(size=12), width=8, command=self.help)
+        self.help_btn.grid(row=1, column=0, rowspan=2, sticky=tk.W, padx=5, pady=5)
+
+        self.total = tk.Label(self, text='共 ' + str(len(groups)) + ' 个群', font=font.Font(size=14))
+        self.total.grid(row=1, column=0, rowspan=2, sticky=tk.E)
+
         def move(event):
             b,e = vbar.get()
             h = e - b
             # d=0.1
-            print('event.delta:', event.delta)
+            # print('event.delta:', event.delta)
             d = vbar.delta(deltax=0, deltay=event.delta) * 2
-            print('fractional:', d)
+            # print('fractional:', d)
             b1 = max(b + d, 0)  # 最小是0
             e1 = min(e + d, 1)  # 最大是1
             if b1 == 0:
@@ -232,19 +246,18 @@ class GroupFrame(tk.Frame):
                 b1 = 1 - h
             vbar.set(b1, e1)
             canvas.yview(tk.MOVETO, b1)
-            print(b1, e1)
+            # print(b1, e1)
             # self.canvas.yview_scroll(-1 * (event.delta / 120), "units")
-
-        canvas.bind_all('<MouseWheel>', move)
-        # self.group_list.bind('<MouseWheel>', move, add=True)
+        self.group_list.bind('<MouseWheel>', move)
 
     def search(self, bdz='', zxl='', fzxl='', keyword=''):
         """
         返回符合条件的结果条数
         """
         n = self.group_list.search(bdz, zxl, fzxl, keyword)
-        scrollregion = (0, 0, WIDTH, ROW_HEIGHT * (n + 2))
+        scrollregion = (0, 0, WIDTH, ROW_HEIGHT * (n + 1))
         self.set_scrollregion(scrollregion)
+        self.total.configure(text='共 ' + str(n) + ' 个群')
         return n
 
     def show_groups(self, groups):
@@ -258,6 +271,9 @@ class GroupFrame(tk.Frame):
 
     def set_scrollregion(self, region):
         self.canvas.configure(scrollregion=region)
+
+    def help(self):
+        pass
 
 
 #vbar.set(*map(lambda x: x-0.1, vbar.get()))
