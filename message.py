@@ -22,7 +22,8 @@ class MessageFrame(tk.Frame):
         book.grid(row=1, column=0, sticky=tk.E+tk.W+tk.N+tk.S)
         self.texts = texts
         self.book = book
-        self.infomation = tk.StringVar(master=self, value='消息提示消息提示消息消息提示消息提示消息aa')
+        self._infomation = '消息提示'
+        self.infomation = tk.StringVar(master=self, value=self._infomation[:21])
         self.info_label = tk.Label(master=self, textvariable=self.infomation, width=32, height=2, cursor='hand', fg='#555', font=font.Font(size=12))
         self.info_label.bind('<Button-1>', lambda e: self.show_info_detail())
         self.info_label.grid(row=2, column=0, sticky=tk.W, padx=5) #.pack(side=tk.LEFT, padx=5)
@@ -46,7 +47,8 @@ class MessageFrame(tk.Frame):
         return self.texts[current].get('1.0', tk.END)
 
     def show_info(self, info, fg='#555'):
-        self.infomation.set(info[:21])
+        self._infomation = info
+        self.infomation.set(info.replace('\n', '')[:21])
         self.info_label.configure(fg=fg)
 
     def clear_info(self):
@@ -57,7 +59,7 @@ class MessageFrame(tk.Frame):
         info_detail.geometry('400x420+100+50')
         info_detail.title('信息详情')
         text = tk.Text(info_detail, width=400, height=400)
-        text.insert(tk.END, self.infomation.get())
+        text.insert(tk.END, self._infomation)
         text.pack()
 
 

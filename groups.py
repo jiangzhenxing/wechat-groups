@@ -1,35 +1,22 @@
 """
 群列表
 """
-
+import os
 import tkinter as tk
 from tkinter import font
+from util import substr, help_message
 
 WIDTH = 500         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
 ROW_HEIGHT = 26     # 行高
 BGCOLORS = ['white', '#FFE']    # 奇偶行的背景色
-WORDS1 = set(list('`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?'))
-
-def substr(string, width):
-    """
-    截取固定显示宽度的字符，WORDS1中的字符宽度为1.5，汉字宽度为2
-    """
-    w = 0
-    for i,c in enumerate(string):
-        w += 1 if c in WORDS1 else 1.3
-        if w > width:
-            i -= 1
-            break
-    # print(w, width, i)
-    return string[:i+1]
 
 
 class Group:
     """
     一个微信群数据
     """
-    def __init__(self, bdz, zxl, fzxl, name):
+    def __init__(self, bdz, zxl, fzxl, name, wxgroup=None, row=None, valid=True):
         """
         :param bdz:     变电站
         :param zxl:     主线路
@@ -40,7 +27,12 @@ class Group:
         self.zxl = zxl
         self.fzxl = fzxl
         self.name = name
-        self.row = None
+        self.wxgroup = wxgroup
+        self.row = row
+        self.valid = valid
+
+    def send_msg(self, msg):
+        self.wxgroup.send_msg(msg)
 
 
 class GroupTitle:
@@ -70,14 +62,14 @@ class GroupRow:
     def __init__(self, master, row, group):
         self.row = row
         self.group = group
-        self._value = tk.IntVar(value=1)
+        self._value = tk.IntVar(value=1 if group.valid else 0)
         self.visible = True
 
-        bgcolor = BGCOLORS[row % 2]
+        bgcolor = BGCOLORS[row % 2] if group.valid else 'red'
         ft = font.Font(size=12)
         sticky = tk.N + tk.E + tk.S + tk.W
 
-        self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=3)
+        self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=3, state=tk.NORMAL if group.valid else tk.DISABLED)
         self.lb_bdz = tk.Label(master, text=substr(group.bdz, 11), width=11, bg=bgcolor, font=ft)
         self.lb_zxl = tk.Label(master, text=substr(group.zxl, 11), width=11, bg=bgcolor, font=ft)
         self.lb_fzxl = tk.Label(master, text=substr(group.fzxl, 11), width=11, bg=bgcolor, font=ft)
@@ -151,9 +143,10 @@ class GroupList(tk.Frame):
         n = 0
         for group in self.groups:
             row = group.row
-            if (bdz == '' or bdz == group.bdz) and (zxl == '' or zxl == group.zxl) \
+            if group.valid and (bdz == '' or bdz == group.bdz) and (zxl == '' or zxl == group.zxl) \
                     and (fzxl == '' or fzxl == group.fzxl) and (keyword == '' or keyword in group.name):
                 row.show(row_num=n)
+                row.select()
                 n += 1
             else:
                 row.hide()
@@ -172,7 +165,7 @@ class GroupList(tk.Frame):
         """
         获取所有可见的并且选中的群
         """
-        return [group for group in self.groups if group.row.visible and group.row.seleted()]
+        return [group for group in self.groups if group.valid and group.row.visible and group.row.seleted()]
 
     def toggle(self):
         """
@@ -189,7 +182,7 @@ class GroupList(tk.Frame):
         选择所有可见的群
         """
         for group in self.groups:
-            if group.row.visible:
+            if group.valid and group.row.visible:
                 group.row.select()
 
     def deselect_all(self):
@@ -199,6 +192,14 @@ class GroupList(tk.Frame):
         for group in self.groups:
             if group.row.visible:
                 group.row.deselect()
+
+    def reset(self):
+        """
+        重置群列表: 行的颜色等
+        """
+        for i,g in enumerate([g for g in self.groups if g.row.visible]):
+            if g.valid:
+                g.row.show(i)
 
     def bind(self, sequence=None, func=None, add=None):
         super().bind(sequence, func, add)
@@ -272,9 +273,42 @@ class GroupFrame(tk.Frame):
     def set_scrollregion(self, region):
         self.canvas.configure(scrollregion=region)
 
-    def help(self):
-        pass
+    def reset(self):
+        self.group_list.reset()
 
+    def help(self):
+        window_help = tk.Toplevel(self)
+        window_help.geometry('680x500+300+100')
+        window_help.title('帮助信息')
+        tk.Label(window_help, text=help_message, font=font.Font(size=14), justify=tk.LEFT).pack()
+
+
+def parse_group(wxgroups):
+    """
+    从文件中解析微信群
+    """
+    if not os.path.exists('data'):
+        os.mkdir('data')
+    groups = []
+    if not os.path.exists('data/groups.csv'):
+        with open('data/groups.csv', 'w') as f:
+            f.write('变电站,主线路,分支线路,群名称\n')
+            for g in wxgroups:
+                f.write(',,,' + g.name + '\n')
+                groups.append(Group('', '', '', g.name, wxgroup=g))
+    else:
+        wxgroup_dict = {g.name: g for g in wxgroups}
+        with open('data/groups.csv') as f:
+            f.readline()    # skip title
+            for line in f:
+                if len(line.strip()) == 0:
+                    continue
+                bdz,zxl,fzxl,name = line.strip().split(',')
+                if name in wxgroup_dict:
+                    groups.append(Group(bdz, zxl, fzxl, name, wxgroup=wxgroup_dict[name]))
+                else:
+                    groups.insert(0, Group(bdz, zxl, fzxl, name, valid=False))
+    return groups
 
 #vbar.set(*map(lambda x: x-0.1, vbar.get()))
 # tk.Button(text='down', command=move).grid(row=1, column=0) #print(vbar.delta(0,-50))

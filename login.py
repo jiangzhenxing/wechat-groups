@@ -14,8 +14,8 @@ import time
 class LoginFrame(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
-        info = tk.Label(self, text='请用手机微信扫描以下二维码并确认登录', font=('Arial', 14), width=35, height=4)
-        info.pack()
+        self.info = tk.Label(self, text='请用手机微信扫描以下二维码并确认登录', font=('Arial', 14), width=35, height=4)
+        self.info.pack()
         self.label_qr = tk.Label(self)
         self.label_qr.pack()
         self.n = 0
@@ -40,6 +40,10 @@ class LoginFrame(tk.Frame):
         print('color is:', c)
         self.label_qr.configure(background=colors[c])
 
+    def login_callback(self):
+        print('seccess login!')
+        self.info.configure(text='登录成功')
+
 
 def start(qr_callback, login_callback):
     bot = wx.Bot(qr_callback=qr_callback, login_callback=login_callback)
@@ -56,7 +60,7 @@ def main():
     window.geometry('400x500')
     f = LoginFrame(window)
     f.pack()
-    threading.Thread(target=start, args=(f.qr_callback, login_callback), daemon=True).start()
+    threading.Thread(target=start, args=(f.qr_callback, f.login_callback), daemon=True).start()
     print('------------------------')
     tk.mainloop()
 

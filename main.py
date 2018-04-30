@@ -3,12 +3,14 @@ import time
 import threading
 import traceback
 import random
+import logging
 from tkinter import font
 from message import MessageFrame
 from search import parse_group_dict, SearchFrame
 from groups import Group,GroupFrame
 from template import Template
 
+logger = logging.getLogger('app')
 
 class MainFrame(tk.Frame):
     """
@@ -29,6 +31,7 @@ class MainFrame(tk.Frame):
     def send_message(self, message):
         print('MainFrame:', message)
         groups = self.gframe.get_selected()
+        self.gframe.reset()
         self.stop_send_flag = False
         threading.Thread(target=self._send, args=(message, groups), daemon=True).start()
 
@@ -40,12 +43,14 @@ class MainFrame(tk.Frame):
                 if self.stop_send_flag:
                     break
                 self.mframe.show_info('正在发送:' + g.name)
+                # g.send_msg(message)
                 print('发送成功:', g.name, ':' + message)
                 g.row.set_bgcolor('green')
                 n_succ += 1
-                time.sleep(1 + random.random() * 2)
-            except Exception as exp:
-                self.mframe.show_info('发送失败:' + str(exp) + '\n' + traceback.format_exc(), fg='red')
+                time.sleep(2 + random.random())
+            except Exception as e:
+                self.show_info('发送失败:' + str(e) + '\n' + traceback.format_exc(), color='red')
+                logger.warning('发送信息出现异常：', exc_info=e)
                 g.row.set_bgcolor('red')
                 n_fail += 1
         self.mframe.show_info('发送成功:' + str(n_succ) + ', 发送失败:' + str(n_fail))
@@ -53,6 +58,9 @@ class MainFrame(tk.Frame):
 
     def stop_send(self):
         self.stop_send_flag = True
+
+    def show_info(self, info, color):
+        self.mframe.show_info(info, fg=color)
 
 
 def main():

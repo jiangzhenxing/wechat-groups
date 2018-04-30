@@ -1,47 +1,62 @@
 #!/usr/bin/env python3
 import tkinter as tk
-from tkinter import ttk
 import wxpy as wx
-import io
 import threading
-import time
+import logging
 from login import LoginFrame
 from main import MainFrame
-from groups import Group
-from template import Template
+from groups import parse_group
+from template import parse_template
+from util import init
 
 """
 先显示描码登录界面
-后显示群管理界面
+登录后显示群管理界面
 """
+init()
+logger = logging.getLogger('app')
 window = tk.Tk()
 window.title('微信群管理')
-window.geometry('400x500')
-
-login_frame = LoginFrame(window)
-login_frame.pack()
-qr_callback = login_frame.qr_callback
-
-def login_callback():
-    print('seccess login!')
+main_frame = None
 
 def show_main(wxbot):
-    window.geometry('890x680+120+50')
-    login_frame.destroy()
-    groups = [Group('变电所变电所aaa' + str(i), '主经路主aaabbbb' + str(i), '分支线路分支线路支线路' + str(i), '群名称群名称名称aaaaaa' + str(i)) for i in range(60)]
-    templates = [Template('Temp' + str(i), 'Content  Content ContentContent ' + str(i)) for i in range(3)]
+    global main_frame
+    window.geometry('890x680+200+50')
 
-    frame = MainFrame(window, wxbot, groups, templates)
-    frame.pack()
+    groups = parse_group(wxbot.groups())  # [Group('变电所变电所aaa' + str(i), '主经路主aaabbbb' + str(i), '分支线路分支线路支线路' + str(i), '群名称群名称名称aaaaaa' + str(i)) for i in range(60)]
 
-def start():
-    wxbot = wx.Bot(qr_callback=qr_callback, login_callback=login_callback)
+    templates = parse_template()    # [Template('Temp' + str(i), 'Content  Content ContentContent ' + str(i)) for i in range(3)]
+
+    main_frame = MainFrame(window, wxbot, groups, templates)
+    main_frame.pack()
+
+def logout_callback():
+    if main_frame:
+        main_frame.destroy()
+    window.geometry('400x500+400+100')
+    tk.Label(window, text='您已退出登录，请退出重新登录！').pack()
+
+def login():
+    window.geometry('400x500+400+100')
+    login_frame = LoginFrame(window)
+    login_frame.pack()
+    wxbot = wx.Bot(qr_callback=login_frame.qr_callback, login_callback=login_frame.login_callback, logout_callback=logout_callback)
     print('wxbot', wxbot)
     for g in wxbot.groups():
         print(g)
-    show_main(wxbot)
+    print('DMP:', wxbot.groups().search('DMP'))
+    login_frame.destroy()
+    return wxbot
 
-if __name__ == '__main__':
-    threading.Thread(target=start, daemon=True).start()
-    print('------------------------------------------')
-    tk.mainloop()
+def start():
+    try:
+        logger.info('starting...')
+        wxbot = login()
+        show_main(wxbot)
+        logger.info('started')
+    except Exception as e:
+        logger.warning('出现异常：', exc_info=e)
+
+
+threading.Thread(target=start, daemon=True).start()
+tk.mainloop()
