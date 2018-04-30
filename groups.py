@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import font
 from util import substr, help_message
 
-WIDTH = 500         # 列表窗口的宽度
+WIDTH = 560         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
 ROW_HEIGHT = 26     # 行高
 BGCOLORS = ['white', '#FFE']    # 奇偶行的背景色
@@ -45,11 +45,18 @@ class GroupTitle:
         bgcolor = '#DDD'
         ft = font.Font(size=14, weight='bold')
         sticky = tk.N + tk.E + tk.S + tk.W
-        tk.Checkbutton(master, variable=self._value, command=command, bg=bgcolor, pady=3).grid(row=row, column=0, sticky=sticky)
-        tk.Label(master, text='变电站', bg=bgcolor, width=10, font=ft).grid(row=row, column=1, sticky=sticky)
-        tk.Label(master, text='10KV主线路', bg=bgcolor, width=10, font=ft).grid(row=row, column=2, sticky=sticky)
-        tk.Label(master, text='分支线路', bg=bgcolor, width=10, font=ft).grid(row=row, column=3, sticky=sticky)
-        tk.Label(master, text='微信群', bg=bgcolor, width=15, font=ft).grid(row=row, column=4, sticky=sticky)
+        self.ckb = tk.Checkbutton(master, variable=self._value, command=command, bg=bgcolor, pady=3)
+        self.ckb.grid(row=row, column=0, sticky=sticky)
+        tk.Label(master, text='变电站', bg=bgcolor, width=12, font=ft).grid(row=row, column=1, sticky=sticky)
+        tk.Label(master, text='10KV主线路', bg=bgcolor, width=12, font=ft).grid(row=row, column=2, sticky=sticky)
+        tk.Label(master, text='分支线路', bg=bgcolor, width=12, font=ft).grid(row=row, column=3, sticky=sticky)
+        tk.Label(master, text='微信群', bg=bgcolor, width=17, font=ft).grid(row=row, column=4, sticky=sticky)
+
+    def select(self):
+        """
+        选中
+        """
+        self.ckb.select()
 
     def selected(self):
         return self._value.get()
@@ -70,10 +77,10 @@ class GroupRow:
         sticky = tk.N + tk.E + tk.S + tk.W
 
         self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=3, state=tk.NORMAL if group.valid else tk.DISABLED)
-        self.lb_bdz = tk.Label(master, text=substr(group.bdz, 11), width=11, bg=bgcolor, font=ft)
-        self.lb_zxl = tk.Label(master, text=substr(group.zxl, 11), width=11, bg=bgcolor, font=ft)
-        self.lb_fzxl = tk.Label(master, text=substr(group.fzxl, 11), width=11, bg=bgcolor, font=ft)
-        self.lb_name = tk.Label(master, text=substr(group.name, 18), width=19, bg=bgcolor, font=ft)
+        self.lb_bdz = tk.Label(master, text=substr(group.bdz, 11), width=13, bg=bgcolor, font=ft)
+        self.lb_zxl = tk.Label(master, text=substr(group.zxl, 11), width=13, bg=bgcolor, font=ft)
+        self.lb_fzxl = tk.Label(master, text=substr(group.fzxl, 11), width=13, bg=bgcolor, font=ft)
+        self.lb_name = tk.Label(master, text=substr(group.name, 18), width=21, bg=bgcolor, font=ft)
         self.columns = [self.ckb, self.lb_bdz, self.lb_zxl, self.lb_fzxl, self.lb_name]
         for i,c in enumerate(self.columns):
             c.grid(row=row, column=i, sticky=sticky)
@@ -150,6 +157,7 @@ class GroupList(tk.Frame):
                 n += 1
             else:
                 row.hide()
+        self.title.select()
         return n
 
     def show(self, groups):
@@ -283,22 +291,23 @@ class GroupFrame(tk.Frame):
         tk.Label(window_help, text=help_message, font=font.Font(size=14), justify=tk.LEFT).pack()
 
 
-def parse_group(wxgroups):
+def parse_group(name, wxgroups):
     """
     从文件中解析微信群
     """
-    if not os.path.exists('data'):
-        os.mkdir('data')
+    path = 'data/'+name
+    if not os.path.exists(path):
+        os.mkdir(path)
     groups = []
-    if not os.path.exists('data/groups.csv'):
-        with open('data/groups.csv', 'w') as f:
+    if not os.path.exists(path+'/groups.csv'):
+        with open(path+'/groups.csv', 'w') as f:
             f.write('变电站,主线路,分支线路,群名称\n')
             for g in wxgroups:
                 f.write(',,,' + g.name + '\n')
                 groups.append(Group('', '', '', g.name, wxgroup=g))
     else:
         wxgroup_dict = {g.name: g for g in wxgroups}
-        with open('data/groups.csv') as f:
+        with open(path+'/groups.csv') as f:
             f.readline()    # skip title
             for line in f:
                 if len(line.strip()) == 0:

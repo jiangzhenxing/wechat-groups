@@ -9,11 +9,15 @@ from template import Template
 
 
 class MessageFrame(tk.Frame):
-    def __init__(self, master, name, templates, send_method, stop_send_method, width=300, height=500):
+    def __init__(self, master, wxbot, templates, send_method, stop_send_method, width=300, height=500):
         tk.Frame.__init__(self, master)
+        self.wxbot = wxbot
         self.send_method = send_method
         self.stop_send_method = stop_send_method
-        tk.Label(self, text='您好, ' + name, padx=5).grid(row=0, column=0, sticky=tk.E)
+        tk.Label(self, text='您好, ' + wxbot.self.name, padx=5).grid(row=0, column=0)
+        logout = tk.Label(self, text='退出', cursor='hand', padx=5)
+        logout.grid(row=0, column=0, sticky=tk.E)
+        logout.bind('<Button-1>', lambda e: wxbot.logout())
         book = ttk.Notebook(self, width=width, height=height)
         texts = [tk.Text(book) for _ in templates]
         for text,template in zip(texts,templates):

@@ -23,7 +23,7 @@ class SearchFrame(tk.Frame):
         # tk.Label(self, text='变电站:').grid(row=0, column=0)
         bdz_var = tk.StringVar()
         bdzs = [BDZ_DEFAULT] + list(bdz_dict.keys())
-        bdz_choosen = ttk.Combobox(self, width=10, textvariable=bdz_var, values=bdzs, height=20, state='readonly')
+        bdz_choosen = ttk.Combobox(self, width=12, textvariable=bdz_var, values=bdzs, height=20, state='readonly')
         bdz_choosen.current(0)
         bdz_choosen.pack(side=tk.LEFT, padx=3)
         self.bdz_var = bdz_var
@@ -34,7 +34,7 @@ class SearchFrame(tk.Frame):
         # tk.Label(self, text='主线路:').grid(row=0, column=2)
         zxl_var = tk.StringVar()
         zxls = [ZXL_DEFAULT]
-        zxl_choosen = ttk.Combobox(self, width=10, textvariable=zxl_var, values=zxls, height=20, state='readonly')
+        zxl_choosen = ttk.Combobox(self, width=12, textvariable=zxl_var, values=zxls, height=20, state='readonly')
         zxl_choosen.current(0)
         zxl_choosen.pack(side=tk.LEFT, padx=3)
         self.zxl_var = zxl_var
@@ -45,7 +45,7 @@ class SearchFrame(tk.Frame):
         # tk.Label(self, text='分支线路:').grid(row=0, column=4)
         fzxl_var = tk.StringVar()
         fzxls = [FZXL_DEFALT]
-        fzxl_choosen = ttk.Combobox(self, width=10, textvariable=fzxl_var, values=fzxls, height=20, state='readonly')
+        fzxl_choosen = ttk.Combobox(self, width=12, textvariable=fzxl_var, values=fzxls, height=20, state='readonly')
         fzxl_choosen.current(0)
         fzxl_choosen.pack(side=tk.LEFT, padx=3)
         self.fzxl_var = fzxl_var
@@ -55,7 +55,7 @@ class SearchFrame(tk.Frame):
         # 群名称搜索
         # tk.Label(self, text='群名称:').grid(row=0, column=6)
         name_var = tk.StringVar(value=GROUP_NAME_DEFAULT)
-        search_entry = tk.Entry(self, textvariable=name_var, width=15)
+        search_entry = tk.Entry(self, textvariable=name_var, width=16)
         search_entry.pack(side=tk.LEFT, padx=3)
         self.name_var = name_var
         search_entry.bind('<KeyPress>', lambda e: self.search() if e.keysym_num==65293 else '')
