@@ -48,10 +48,16 @@ class GroupTitle:
         sticky = tk.N + tk.E + tk.S + tk.W
         self.ckb = tk.Checkbutton(master, variable=self._value, command=command, bg=bgcolor, pady=3)
         self.ckb.grid(row=row, column=0, sticky=sticky)
-        tk.Label(master, text='变电站', bg=bgcolor, width=12, font=ft).grid(row=row, column=1, sticky=sticky)
-        tk.Label(master, text='10KV主线路', bg=bgcolor, width=12, font=ft).grid(row=row, column=2, sticky=sticky)
-        tk.Label(master, text='分支线路', bg=bgcolor, width=12, font=ft).grid(row=row, column=3, sticky=sticky)
-        tk.Label(master, text='微信群', bg=bgcolor, width=17, font=ft).grid(row=row, column=4, sticky=sticky)
+        self.bdz = tk.Label(master, text='变电站', bg=bgcolor, width=12, font=ft)
+        self.zxl = tk.Label(master, text='10KV主线路', bg=bgcolor, width=12, font=ft)
+        self.fzxl = tk.Label(master, text='分支线路', bg=bgcolor, width=12, font=ft)
+        self.wxq = tk.Label(master, text='微信群', bg=bgcolor, width=17, font=ft)
+        self.columns = [self.ckb, self.bdz, self.zxl, self.fzxl, self.wxq]
+        for i,c in enumerate(self.columns):
+            c.grid(row=row, column=i, sticky=sticky)
+
+    def reqheight(self):
+        return max(map(lambda w: w.winfo_reqheight(),self.columns))
 
     def select(self):
         """
@@ -85,6 +91,9 @@ class GroupRow:
         self.columns = [self.ckb, self.lb_bdz, self.lb_zxl, self.lb_fzxl, self.lb_name]
         for i,c in enumerate(self.columns):
             c.grid(row=row, column=i, sticky=sticky)
+
+    def reqheight(self):
+        return max(map(lambda w: w.winfo_reqheight(),self.columns))
 
     def set_bgcolor(self, color):
         for c in self.columns:
@@ -141,6 +150,16 @@ class GroupList(tk.Frame):
         self.groups = groups
         for row, group in enumerate(groups):
             group.row = GroupRow(self,row+1,group)
+
+    def reqheight(self):
+        n = self.visible_row_count()
+        if n == 0:
+            return self.title.reqheight()
+        else:
+            return self.title.reqheight() + self.groups[0].row.reqheight() * n
+
+    def visible_row_count(self):
+        return sum(map(lambda g: g.row.visible, self.groups))
 
     def search(self, bdz='', zxl='', fzxl='', keyword=''):
         """
@@ -222,18 +241,19 @@ class GroupFrame(tk.Frame):
     """
     def __init__(self, master, groups):
         tk.Frame.__init__(self, master=master)
-        canvas = tk.Canvas(self, bg='#EEE', bd='1', width=WIDTH, height=HEIGHT, scrollregion=(0, 0, WIDTH, ROW_HEIGHT * (len(groups)+1))) #创建canvas
+        canvas = tk.Canvas(self, bg='#EEE', bd='1', width=WIDTH, height=HEIGHT) #创建canvas
         canvas.grid(row=0, column=0, sticky=tk.N + tk.S+tk.E+tk.W) #放置canvas的位置
+        self.canvas = canvas
 
         # 创建GroupList并放到canvas里
         self.group_list = GroupList(canvas, groups)
+        self.set_scrollregion((0, 0, WIDTH, self.group_list.reqheight()))
         vbar=tk.Scrollbar(self,orient=tk.VERTICAL) #竖直滚动条
         vbar.grid(row=0, column=1, sticky=tk.N + tk.S)
         vbar.configure(command=canvas.yview)
 
         canvas.config(yscrollcommand=vbar.set)
         canvas.create_window((0, 0), window=self.group_list, anchor=tk.NW)  # create_window
-        self.canvas = canvas
 
         self.help_btn = tk.Button(self, text='帮助信息', font=font.Font(size=12), width=8, command=self.help)
         self.help_btn.grid(row=1, column=0, rowspan=2, sticky=tk.W, padx=5, pady=5)
@@ -265,7 +285,7 @@ class GroupFrame(tk.Frame):
         返回符合条件的结果条数
         """
         n = self.group_list.search(bdz, zxl, fzxl, keyword)
-        scrollregion = (0, 0, WIDTH, ROW_HEIGHT * (n + 1))
+        scrollregion = (0, 0, WIDTH, self.group_list.reqheight())
         self.set_scrollregion(scrollregion)
         self.total.configure(text='共 ' + str(n) + ' 个群')
         return n
