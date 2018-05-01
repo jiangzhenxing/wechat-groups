@@ -24,16 +24,22 @@ def read_text(file):
 def init():
     if not os.path.exists('data'):
         os.mkdir('data')
-    if not os.path.exists('data/templates'):
-        os.mkdir('data/templates')
+    if not os.path.exists(template_path):
+        os.mkdir(template_path)
     if not os.path.exists('logs'):
         os.mkdir('logs')
-    logging.config.fileConfig('logging.conf')
 
+def init_user(wxbot):
+    path = user_path(wxbot)
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+user_path = lambda wxbot: 'data/' + wxbot.self.puid
+template_path = 'data/templates'
 
 help_message = \
 """
-1. 第一次登录本系统时，会把你的所有群列表保存在'data/@微信名/groups.csv'中，
+1. 第一次登录本系统时，会把你的所有群列表保存在'data/@puid(名称后面括号里的字母)/groups.csv'中，
 
    可以使用excel打开编辑，输入变电站等信息，保存时重新导出并覆盖原'groups.csv'文件。
    
@@ -43,9 +49,9 @@ help_message = \
 
 4. 如果刚打开群管理应用时，发现某个群背景为红色，刚说明该群找不到。
 
-   请确认该群名称正确且已经保存到了通讯录中。
+   请确认该群名称正确且已经保存到了通讯录中，如果不需要可以在'groups.csv'中将其删除。
 
-5. 为了避免因消息发送过快导致的问题，所以本应用每发送一条消息需要等待2~3秒的时间。
+5. 为了避免因消息发送过快导致的问题，所以本应用每发送一条消息需要等待1~2秒的时间。
 """
 
 def main():

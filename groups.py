@@ -4,7 +4,7 @@
 import os
 import tkinter as tk
 from tkinter import font
-from util import substr, help_message
+from util import substr, help_message, user_path
 
 WIDTH = 560         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
@@ -286,18 +286,17 @@ class GroupFrame(tk.Frame):
 
     def help(self):
         window_help = tk.Toplevel(self)
-        window_help.geometry('680x500+300+100')
+        window_help.geometry('700x500+300+100')
         window_help.title('帮助信息')
         tk.Label(window_help, text=help_message, font=font.Font(size=14), justify=tk.LEFT).pack()
 
 
-def parse_group(name, wxgroups):
+def parse_group(wxbot):
     """
     从文件中解析微信群
     """
-    path = 'data/'+name
-    if not os.path.exists(path):
-        os.mkdir(path)
+    path = user_path(wxbot)
+    wxgroups = wxbot.groups()
     groups = []
     if not os.path.exists(path+'/groups.csv'):
         with open(path+'/groups.csv', 'w') as f:

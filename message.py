@@ -14,7 +14,7 @@ class MessageFrame(tk.Frame):
         self.wxbot = wxbot
         self.send_method = send_method
         self.stop_send_method = stop_send_method
-        tk.Label(self, text='您好, ' + wxbot.self.name, padx=5).grid(row=0, column=0)
+        tk.Label(self, text='您好, %s(%s)' % (wxbot.self.name, wxbot.self.puid), padx=5).grid(row=0, column=0)
         logout = tk.Label(self, text='退出', cursor='hand', padx=5)
         logout.grid(row=0, column=0, sticky=tk.E)
         logout.bind('<Button-1>', lambda e: wxbot.logout())
@@ -60,7 +60,7 @@ class MessageFrame(tk.Frame):
 
     def show_info_detail(self):
         info_detail = tk.Toplevel(self)
-        info_detail.geometry('400x420+100+50')
+        info_detail.geometry('400x420+400+100')
         info_detail.title('信息详情')
         text = tk.Text(info_detail, width=400, height=400)
         text.insert(tk.END, self._infomation)

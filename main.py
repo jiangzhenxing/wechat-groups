@@ -47,7 +47,7 @@ class MainFrame(tk.Frame):
                 print('发送成功:', g.name, ':' + message)
                 g.row.set_bgcolor('green')
                 n_succ += 1
-                time.sleep(2 + random.random())
+                time.sleep(1 + random.random())
             except Exception as e:
                 self.show_info('发送失败:' + str(e) + '\n' + traceback.format_exc(), color='red')
                 logger.warning('发送信息出现异常：', exc_info=e)
