@@ -25,24 +25,24 @@ class LoginFrame(tk.Frame):
         global img_qr
         self.n += 1
         colors = ['green', 'red', 'blue']
-        print(uuid, status, qrcode, sep='\t')
+        # print(uuid, status, qrcode, sep='\t')
         code = io.BytesIO(qrcode)
         img = Image.open(code)
-        print(img.size)
+        # print(img.size)
         img = img.resize((300, 300), Image.ANTIALIAS)
         # img.show()
         img_qr = ImageTk.PhotoImage(img)
         code.close()
         # qr_img.save('qrcode2.png')
-        print(self.label_qr)
+        # print(self.label_qr)
         # time.sleep(1)
         self.label_qr.configure(image=img_qr)
         c = self.n % 3
-        print('color is:', c)
+        # print('color is:', c)
         self.label_qr.configure(background=colors[c])
 
     def login_callback(self):
-        print('seccess login!')
+        # print('seccess login!')
         self.info.configure(text='登录成功')
 
 

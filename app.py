@@ -28,9 +28,7 @@ def login():
     wxbot = wx.Bot(qr_callback=login_frame.qr_callback, login_callback=login_frame.login_callback, logout_callback=logout_callback)
     wxbot.enable_puid('wxpy_puid.pkl')
     init_user(wxbot)
-    logger.info('%s login', wxbot)
-    for g in wxbot.groups():
-        logger.info(g.name)
+    logger.info('%s login', wxbot.self.puid)
     login_frame.destroy()
     return wxbot
 
@@ -65,7 +63,7 @@ def start():
         show_main(wxbot)
         logger.info('started')
     except Exception as e:
-        logger.warning('出现异常：', exc_info=e)
+        logger.warning('exception:', exc_info=e)
 
 
 threading.Thread(target=start, daemon=True).start()

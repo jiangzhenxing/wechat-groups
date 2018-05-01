@@ -30,7 +30,7 @@ class MainFrame(tk.Frame):
         self.stop_send_flag = False
 
     def send_message(self, message):
-        print('MainFrame:', message)
+        # print('MainFrame:', message)
         groups = self.gframe.get_selected()
         self.gframe.reset()
         self.stop_send_flag = False
@@ -45,7 +45,7 @@ class MainFrame(tk.Frame):
                     break
                 self.mframe.show_info('正在发送:' + g.name)
                 # g.send_msg(message)
-                print('发送成功:', g.name, ':' + message)
+                logger.info('发送成功:%s:%s', g.name, message)
                 g.row.set_bgcolor('green')
                 n_succ += 1
                 time.sleep(1 + random.random())
