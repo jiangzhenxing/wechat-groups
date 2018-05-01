@@ -1,5 +1,6 @@
+# coding=utf-8
+
 import os
-import logging.config
 
 WORDS1 = set(list('`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+{}|:"<>?'))
 
