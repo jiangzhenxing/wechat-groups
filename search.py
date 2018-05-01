@@ -1,12 +1,15 @@
 # coding=utf-8
 import tkinter as tk
-from tkinter import font,messagebox,filedialog,ttk
+import logging
+from tkinter import ttk
 from groups import Group, GroupFrame
 
 BDZ_DEFAULT = '请选择变电站'
 ZXL_DEFAULT = '请选择主线路'
 FZXL_DEFALT = '请选择分支线路'
 GROUP_NAME_DEFAULT = '群名称关键词'
+
+logger = logging.getLogger('app')
 
 class SearchFrame(tk.Frame):
     """
@@ -24,7 +27,7 @@ class SearchFrame(tk.Frame):
         # tk.Label(self, text='变电站:').grid(row=0, column=0)
         bdz_var = tk.StringVar()
         bdzs = [BDZ_DEFAULT] + list(bdz_dict.keys())
-        bdz_choosen = ttk.Combobox(self, width=12, textvariable=bdz_var, values=bdzs, height=20, state='readonly')
+        bdz_choosen = ttk.Combobox(self, width=16, textvariable=bdz_var, values=bdzs, height=20, state='readonly')
         bdz_choosen.current(0)
         bdz_choosen.pack(side=tk.LEFT, padx=3)
         self.bdz_var = bdz_var
@@ -35,7 +38,7 @@ class SearchFrame(tk.Frame):
         # tk.Label(self, text='主线路:').grid(row=0, column=2)
         zxl_var = tk.StringVar()
         zxls = [ZXL_DEFAULT]
-        zxl_choosen = ttk.Combobox(self, width=12, textvariable=zxl_var, values=zxls, height=20, state='readonly')
+        zxl_choosen = ttk.Combobox(self, width=16, textvariable=zxl_var, values=zxls, height=20, state='readonly')
         zxl_choosen.current(0)
         zxl_choosen.pack(side=tk.LEFT, padx=3)
         self.zxl_var = zxl_var
@@ -46,7 +49,7 @@ class SearchFrame(tk.Frame):
         # tk.Label(self, text='分支线路:').grid(row=0, column=4)
         fzxl_var = tk.StringVar()
         fzxls = [FZXL_DEFALT]
-        fzxl_choosen = ttk.Combobox(self, width=12, textvariable=fzxl_var, values=fzxls, height=20, state='readonly')
+        fzxl_choosen = ttk.Combobox(self, width=16, textvariable=fzxl_var, values=fzxls, height=20, state='readonly')
         fzxl_choosen.current(0)
         fzxl_choosen.pack(side=tk.LEFT, padx=3)
         self.fzxl_var = fzxl_var
@@ -56,7 +59,7 @@ class SearchFrame(tk.Frame):
         # 群名称搜索
         # tk.Label(self, text='群名称:').grid(row=0, column=6)
         name_var = tk.StringVar(value=GROUP_NAME_DEFAULT)
-        search_entry = tk.Entry(self, textvariable=name_var, width=16)
+        search_entry = tk.Entry(self, textvariable=name_var, width=20)
         search_entry.pack(side=tk.LEFT, padx=3)
         self.name_var = name_var
         search_entry.bind('<KeyPress>', lambda e: self.search() if e.keysym_num==65293 else '')
@@ -71,7 +74,7 @@ class SearchFrame(tk.Frame):
         name = '' if self.name_var.get() == GROUP_NAME_DEFAULT else self.name_var.get()
         # print('search', bdz, zxl, fzxl, name)
         search_condition = ','.join([bdz, zxl, fzxl, name])
-        print(search_condition)
+        logger.info(search_condition)
         if search_condition != self.search_condition:
             self.group_frame.search(bdz, zxl, fzxl, keyword=name)
             self.search_condition = search_condition

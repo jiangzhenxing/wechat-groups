@@ -306,7 +306,7 @@ class GroupFrame(tk.Frame):
 
     def help(self):
         window_help = tk.Toplevel(self)
-        window_help.geometry('700x500+300+100')
+        window_help.geometry('750x500+300+100')
         window_help.title('帮助信息')
         tk.Label(window_help, text=help_message, font=font.Font(size=12), justify=tk.LEFT).pack()
 
