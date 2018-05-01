@@ -16,7 +16,7 @@ class MessageFrame(tk.Frame):
         self.send_method = send_method
         self.stop_send_method = stop_send_method
         tk.Label(self, text='您好, %s(%s)' % (wxbot.self.name, wxbot.self.puid), padx=5).grid(row=0, column=0)
-        logout = tk.Label(self, text='退出', cursor='hand', padx=5)
+        logout = tk.Label(self, text='退出', cursor='hand2', padx=5)
         logout.grid(row=0, column=0, sticky=tk.E)
         logout.bind('<Button-1>', lambda e: wxbot.logout())
         book = ttk.Notebook(self, width=width, height=height)
@@ -29,7 +29,7 @@ class MessageFrame(tk.Frame):
         self.book = book
         self._infomation = '消息提示'
         self.infomation = tk.StringVar(master=self, value=self._infomation[:21])
-        self.info_label = tk.Label(master=self, textvariable=self.infomation, width=32, height=2, cursor='hand', fg='#555', font=font.Font(size=12))
+        self.info_label = tk.Label(master=self, textvariable=self.infomation, width=32, height=2, cursor='hand2', fg='#555', font=font.Font(size=12))
         self.info_label.bind('<Button-1>', lambda e: self.show_info_detail())
         self.info_label.grid(row=2, column=0, sticky=tk.W, padx=5) #.pack(side=tk.LEFT, padx=5)
         self.send_btn_text = tk.StringVar(value='发送')

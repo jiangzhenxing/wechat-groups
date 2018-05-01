@@ -7,9 +7,8 @@ import tkinter as tk
 from tkinter import font
 from util import substr, help_message, user_path
 
-WIDTH = 560         # 列表窗口的宽度
+WIDTH = 600         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
-ROW_HEIGHT = 26     # 行高
 BGCOLORS = ['white', '#FFE']    # 奇偶行的背景色
 
 
@@ -44,7 +43,7 @@ class GroupTitle:
         self._value = tk.IntVar(value=1)
         row = 0
         bgcolor = '#DDD'
-        ft = font.Font(size=14, weight='bold')
+        ft = font.Font(size=12, weight='bold')
         sticky = tk.N + tk.E + tk.S + tk.W
         self.ckb = tk.Checkbutton(master, variable=self._value, command=command, bg=bgcolor, pady=3)
         self.ckb.grid(row=row, column=0, sticky=sticky)
@@ -80,7 +79,7 @@ class GroupRow:
         self.visible = True
 
         bgcolor = BGCOLORS[row % 2] if group.valid else 'red'
-        ft = font.Font(size=12)
+        ft = font.Font(size=11)
         sticky = tk.N + tk.E + tk.S + tk.W
 
         self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=3, state=tk.NORMAL if group.valid else tk.DISABLED)
@@ -309,7 +308,7 @@ class GroupFrame(tk.Frame):
         window_help = tk.Toplevel(self)
         window_help.geometry('700x500+300+100')
         window_help.title('帮助信息')
-        tk.Label(window_help, text=help_message, font=font.Font(size=14), justify=tk.LEFT).pack()
+        tk.Label(window_help, text=help_message, font=font.Font(size=12), justify=tk.LEFT).pack()
 
 
 def parse_group(wxbot):
