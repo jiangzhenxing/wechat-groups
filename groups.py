@@ -319,14 +319,14 @@ def parse_group(wxbot):
     wxgroups = wxbot.groups()
     groups = []
     if not os.path.exists(path+'/groups.csv'):
-        with open(path+'/groups.csv', 'w') as f:
+        with open(path+'/groups.csv', 'w', encoding='utf-8') as f:
             f.write('变电站,主线路,分支线路,群名称\n')
             for g in wxgroups:
                 f.write(',,,' + g.name + '\n')
                 groups.append(Group('', '', '', g.name, wxgroup=g))
     else:
         wxgroup_dict = {g.name: g for g in wxgroups}
-        with open(path+'/groups.csv') as f:
+        with open(path+'/groups.csv', encoding='utf-8') as f:
             f.readline()    # skip title
             for line in f:
                 if len(line.strip()) == 0:

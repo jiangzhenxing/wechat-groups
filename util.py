@@ -19,7 +19,7 @@ def substr(string, width):
     return string[:i+1]
 
 def read_text(file):
-    with open(file) as f:
+    with open(file, encoding='utf-8') as f:
         return f.read(os.path.getsize(file))
 
 def init():
