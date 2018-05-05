@@ -17,26 +17,27 @@ class MainFrame(tk.Frame):
     """
     群管理主界面
     """
-    def __init__(self, master, wxbot, groups, templates, **cnf):
+    def __init__(self, master, wxbot, groups, templates, send_period=1, **cnf):
         super().__init__(master, **cnf)
         self.wxbot = wxbot
+        self.send_period = send_period
         tk.Label(master=self, text='欢迎使用微信群管理系统', fg='#333', font=font.Font(size=16, family='黑体', weight='bold')).grid(row=0, column=0, sticky=tk.S, pady=5)
         self.mframe = MessageFrame(self, wxbot, templates, self.send_message, self.stop_send)
         self.mframe.grid(row=1, column=0)
         self.gframe = GroupFrame(self, groups)
-        self.gframe.grid(row=1, column=1)
+        self.gframe.grid(row=1, column=1, sticky=tk.W)
         self.sframe = SearchFrame(self, *parse_group_dict(groups), group_frame=self.gframe)
         self.sframe.grid(row=0, column=1, sticky=tk.W)
         self.stop_send_flag = False
 
-    def send_message(self, message):
-        # print('MainFrame:', message)
+    def send_message(self, content=None, media_id=None):
+        print('MainFrame:', content, media_id)
         groups = self.gframe.get_selected()
         self.gframe.reset()
         self.stop_send_flag = False
-        threading.Thread(target=self._send, args=(message, groups), daemon=True).start()
+        threading.Thread(target=self._send, args=(groups, content, media_id), daemon=True).start()
 
-    def _send(self, message, groups):
+    def _send(self, groups, content, media_id=None):
         n_succ = 0
         n_fail = 0
         for g in groups:
@@ -44,11 +45,17 @@ class MainFrame(tk.Frame):
                 if self.stop_send_flag:
                     break
                 self.mframe.show_info('正在发送:' + g.name)
-                # g.send_msg(message)
-                logger.info('发送成功:%s:%s', g.name, message)
+                g.send(content=content, media_id=media_id)
+                # if message.startswith('@vid@'):
+                #     path = message[5:]
+                #     media_id = self.wxbot.upload_file(path=path)
+                #     g.wxgroup.send_video(media_id=media_id)
+                # else:
+                #     g.send(content=message)
+                logger.info('发送成功:%s:%s', g.name, content)
                 g.row.set_bgcolor('green')
                 n_succ += 1
-                time.sleep(1 + random.random())
+                time.sleep(self.send_period + random.random())
             except Exception as e:
                 self.show_info('发送失败:' + str(e) + '\n' + traceback.format_exc(), color='red')
                 logger.warning('发送信息出现异常：', exc_info=e)

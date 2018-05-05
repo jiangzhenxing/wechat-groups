@@ -38,6 +38,9 @@ def init_user(wxbot):
 user_path = lambda wxbot: 'data/' + wxbot.self.puid
 template_path = 'data/templates'
 
+def suffix(filename):
+    return filename[filename.rfind('.')+1:].lower()
+
 help_message = \
 """
 1. 第一次登录本系统时，会把你的所有群列表保存在'data/@puid(名称后面括号里的字母)/groups.csv'中，
@@ -56,7 +59,7 @@ help_message = \
 """
 
 def main():
-    pass
+    print(suffix('aajpg'))
 
 if __name__ == '__main__':
     main()

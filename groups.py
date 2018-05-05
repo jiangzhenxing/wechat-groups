@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import font
 from util import substr, help_message, user_path
 
-WIDTH = 600         # 列表窗口的宽度
+WIDTH = 650         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
 BGCOLORS = ['white', '#FFE']    # 奇偶行的背景色
 
@@ -16,16 +16,18 @@ class Group:
     """
     一个微信群数据
     """
-    def __init__(self, bdz, zxl, fzxl, name, wxgroup=None, row=None, valid=True):
+    def __init__(self, bdz, zxl, fzxl, tq, name, wxgroup=None, row=None, valid=True):
         """
         :param bdz:     变电站
         :param zxl:     主线路
         :param fzxl:    分支线路
+        :param tq:      台区
         :param name:    群名称
         """
         self.bdz = bdz
         self.zxl = zxl
         self.fzxl = fzxl
+        self.tq = tq
         self.name = name
         self.wxgroup = wxgroup
         self.row = row
@@ -33,6 +35,9 @@ class Group:
 
     def send_msg(self, msg):
         self.wxgroup.send_msg(msg)
+
+    def send(self, content=None, media_id=None):
+        self.wxgroup.send(content=content, media_id=media_id)
 
 
 class GroupTitle:
@@ -50,8 +55,9 @@ class GroupTitle:
         self.bdz = tk.Label(master, text='变电站', bg=bgcolor, width=12, font=ft)
         self.zxl = tk.Label(master, text='10KV主线路', bg=bgcolor, width=12, font=ft)
         self.fzxl = tk.Label(master, text='分支线路', bg=bgcolor, width=12, font=ft)
+        self.tq = tk.Label(master, text='台区', bg=bgcolor, width=12, font=ft)
         self.wxq = tk.Label(master, text='微信群', bg=bgcolor, width=17, font=ft)
-        self.columns = [self.ckb, self.bdz, self.zxl, self.fzxl, self.wxq]
+        self.columns = [self.ckb, self.bdz, self.zxl, self.fzxl, self.tq, self.wxq]
         for i,c in enumerate(self.columns):
             c.grid(row=row, column=i, sticky=sticky)
 
@@ -86,8 +92,9 @@ class GroupRow:
         self.lb_bdz = tk.Label(master, text=substr(group.bdz, 11), width=13, bg=bgcolor, font=ft)
         self.lb_zxl = tk.Label(master, text=substr(group.zxl, 11), width=13, bg=bgcolor, font=ft)
         self.lb_fzxl = tk.Label(master, text=substr(group.fzxl, 11), width=13, bg=bgcolor, font=ft)
+        self.lb_tq = tk.Label(master, text=substr(group.tq, 11), width=13, bg=bgcolor, font=ft)
         self.lb_name = tk.Label(master, text=substr(group.name, 18), width=21, bg=bgcolor, font=ft)
-        self.columns = [self.ckb, self.lb_bdz, self.lb_zxl, self.lb_fzxl, self.lb_name]
+        self.columns = [self.ckb, self.lb_bdz, self.lb_zxl, self.lb_fzxl, self.lb_tq, self.lb_name]
         for i,c in enumerate(self.columns):
             c.grid(row=row, column=i, sticky=sticky)
 
@@ -148,7 +155,7 @@ class GroupList(tk.Frame):
         self.title = GroupTitle(self, command=self.toggle)
         self.groups = groups
         for row, group in enumerate(groups):
-            group.row = GroupRow(self,row+1,group)
+            group.row = GroupRow(self, row+1, group)
 
     def reqheight(self):
         n = self.visible_row_count()
@@ -160,7 +167,7 @@ class GroupList(tk.Frame):
     def visible_row_count(self):
         return sum(map(lambda g: g.row.visible, self.groups))
 
-    def search(self, bdz='', zxl='', fzxl='', keyword=''):
+    def search(self, bdz='', zxl='', fzxl='', tq='', keyword=''):
         """
         按所给条件搜索微信群
         将不符合条件的群设为不可见
@@ -170,7 +177,7 @@ class GroupList(tk.Frame):
         for group in self.groups:
             row = group.row
             if group.valid and (bdz == '' or bdz == group.bdz) and (zxl == '' or zxl == group.zxl) \
-                    and (fzxl == '' or fzxl == group.fzxl) and (keyword == '' or keyword in group.name):
+                    and (fzxl == '' or fzxl == group.fzxl) and (tq == '' or tq == group.tq) and (keyword == '' or keyword in group.name):
                 row.show(row_num=n)
                 row.select()
                 n += 1
@@ -279,11 +286,11 @@ class GroupFrame(tk.Frame):
             # self.canvas.yview_scroll(-1 * (event.delta / 120), "units")
         self.group_list.bind('<MouseWheel>', move)
 
-    def search(self, bdz='', zxl='', fzxl='', keyword=''):
+    def search(self, bdz='', zxl='', fzxl='', tq='', keyword=''):
         """
         返回符合条件的结果条数
         """
-        n = self.group_list.search(bdz, zxl, fzxl, keyword)
+        n = self.group_list.search(bdz, zxl, fzxl, tq, keyword)
         scrollregion = (0, 0, WIDTH, self.group_list.reqheight())
         self.set_scrollregion(scrollregion)
         self.total.configure(text='共 ' + str(n) + ' 个群')
@@ -320,9 +327,9 @@ def parse_group(wxbot):
     groups = []
     if not os.path.exists(path+'/groups.csv'):
         with open(path+'/groups.csv', 'w', encoding='utf-8') as f:
-            f.write('变电站,主线路,分支线路,群名称\n')
+            f.write('变电站,主线路,分支线路,台区,群名称\n')
             for g in wxgroups:
-                f.write(',,,' + g.name + '\n')
+                f.write(',,,,' + g.name + '\n')
                 groups.append(Group('', '', '', g.name, wxgroup=g))
     else:
         wxgroup_dict = {g.name: g for g in wxgroups}
@@ -331,11 +338,11 @@ def parse_group(wxbot):
             for line in f:
                 if len(line.strip()) == 0:
                     continue
-                bdz,zxl,fzxl,name = line.strip().split(',')
+                bdz,zxl,fzxl,tq,name = line.strip().split(',')
                 if name in wxgroup_dict:
-                    groups.append(Group(bdz, zxl, fzxl, name, wxgroup=wxgroup_dict[name]))
+                    groups.append(Group(bdz, zxl, fzxl, tq, name, wxgroup=wxgroup_dict[name]))
                 else:
-                    groups.insert(0, Group(bdz, zxl, fzxl, name, valid=False))
+                    groups.insert(0, Group(bdz, zxl, fzxl, tq, name, valid=False))
     return groups
 
 #vbar.set(*map(lambda x: x-0.1, vbar.get()))

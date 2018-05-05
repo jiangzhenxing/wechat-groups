@@ -4,6 +4,8 @@ import tkinter as tk
 import wxpy as wx
 import threading
 import logging.config
+import time
+import configparser
 from login import LoginFrame
 from main import MainFrame
 from groups import parse_group
@@ -15,13 +17,32 @@ from util import init, init_user
 登录后显示群管理界面
 """
 init()
-logging.config.fileConfig('logging.conf')
+config = configparser.ConfigParser()
+config.read('config/app.ini')
+logging.config.fileConfig('config/logging.conf')
 logger = logging.getLogger('app')
 window = tk.Tk()
 window.title('微信群管理')
 main_frame = None
 
 def login():
+    window.geometry('400x300+400+200')
+    frame = tk.Frame(window)
+    tk.Label(frame, text='请输入密码：').pack()
+    passwd = tk.StringVar(master=frame)
+    passwd_entry = tk.Entry(frame, textvariable=passwd, show='*')
+    passwd_entry.pack()
+
+    def _login():
+        if passwd.get() == time.strftime('%Y%m%d') + '123':
+            frame.destroy()
+            threading.Thread(target=start, daemon=True).start()
+
+    passwd_entry.bind('<KeyPress>', lambda e: _login() if e.keysym_num == 65293 else '')
+    tk.Button(frame, text='登录', width=5, command=_login).pack()
+    frame.pack()
+
+def wxlogin():
     window.geometry('400x500+400+100')
     login_frame = LoginFrame(window)
     login_frame.pack()
@@ -34,14 +55,14 @@ def login():
 
 def show_main(wxbot):
     global main_frame
-    window.geometry('950x680+200+50')
+    window.geometry('1000x680+200+50')
 
     groups = parse_group(wxbot)  # [Group('变电所变电所aaa' + str(i), '主经路主aaabbbb' + str(i), '分支线路分支线路支线路' + str(i), '群名称群名称名称aaaaaa' + str(i)) for i in range(60)]
 
     templates = parse_template()    # [Template('Temp' + str(i), 'Content  Content ContentContent ' + str(i)) for i in range(3)]
 
-    main_frame = MainFrame(window, wxbot, groups, templates)
-    main_frame.pack()
+    main_frame = MainFrame(window, wxbot, groups, templates, send_period=config.getint('basic', 'send.period'))
+    main_frame.grid()
 
 def logout_callback():
     if main_frame:
@@ -59,12 +80,13 @@ def logout_callback():
 def start():
     try:
         logger.info('starting...')
-        wxbot = login()
+        wxbot = wxlogin()
         show_main(wxbot)
         logger.info('started')
     except Exception as e:
         logger.warning('exception:', exc_info=e)
 
 
-threading.Thread(target=start, daemon=True).start()
+login()
+
 tk.mainloop()
