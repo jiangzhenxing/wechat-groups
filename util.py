@@ -61,21 +61,27 @@ def valid_licence():
 
 def thumbnail(img_path):
     target_size = 500 * 1000
+    quality = 95
     filesize = os.path.getsize(img_path)
     if filesize > target_size:
         img = Image.open(img_path)
         while True:
             x,y = img.size
-            x,y = int(0.9 * x), int(0.9 * y)
+            print(x, y)
+            if x > 2000 or y > 2000:
+                x = min(x, 2000)
+                y = min(y, 2000)
+            else:
+                x,y = int(0.9 * x), int(0.9 * y)
             img.thumbnail((x,y))
             bytes = io.BytesIO()
-            img.save(bytes, 'jpeg')
+            img.save(bytes, 'jpeg', quality=quality)
             data_len = len(bytes.getvalue())
             bytes.close()
             if data_len < target_size:
                 break
         img_path = THUMBNAIL_PATH + path.sep + os.path.basename(img_path)
-        img.save(img_path, 'jpeg', exif=img.info['exif'])
+        img.save(img_path, 'jpeg', exif=img.info['exif'], quality=quality)
     print(img_path)
     return img_path
 
@@ -104,8 +110,13 @@ help_message = \
 7. 受限于微信WEB接口，目前只能发送小于500K的图片或文件，发送大文件很可能失败。
 """
 
+def test_thumbnail():
+    pictures = ['20160507_154045.jpg', '20160915_133444.jpg', '20160916_085707.jpg', '20151004_133144.jpg']
+    for pic in pictures:
+        thumbnail('/Users/jiangzhenxing/Pictures/' + pic)
+
 def main():
-    print(suffix('aajpg'))
+    test_thumbnail()
 
 if __name__ == '__main__':
     main()
