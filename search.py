@@ -69,10 +69,10 @@ class SearchFrame(tk.Frame):
         search_entry = tk.Entry(self, textvariable=name_var, width=20)
         search_entry.pack(side=tk.LEFT, padx=3)
         self.name_var = name_var
-        search_entry.bind('<KeyPress>', lambda e: self.search() if e.keysym_num==65293 else '')
+        search_entry.bind('<KeyPress>', self.keyword_search)
         search_entry.bind('<FocusIn>', lambda e: name_var.set('') if name_var.get() == GROUP_NAME_DEFAULT else '')
 
-        self.search_condition = ''
+        self.search_condition = [BDZ_DEFAULT, ZXL_DEFAULT, FZXL_DEFAULT, TQ_DEFAULT, '']
 
     def search(self):
         bdz = '' if self.bdz_var.get() == BDZ_DEFAULT else self.bdz_var.get()
@@ -81,18 +81,40 @@ class SearchFrame(tk.Frame):
         tq = '' if self.tq_var.get() == TQ_DEFAULT else self.tq_var.get()
         name = '' if self.name_var.get() == GROUP_NAME_DEFAULT else self.name_var.get()
         # print('search', bdz, zxl, fzxl, tq, name)
-        search_condition = ','.join([bdz, zxl, fzxl, tq, name])
-        logger.info(search_condition)
+        search_condition = [bdz, zxl, fzxl, tq, name]
+        logger.info('search: %s', ','.join([bdz, zxl, fzxl, tq, name]))
         if search_condition != self.search_condition:
-            self.group_frame.search(bdz, zxl, fzxl, tq, keyword=name)
+            result = self.group_frame.search(bdz, zxl, fzxl, tq, keyword=name)
+            if name:
+                # 用户使用了关键词搜索，更新最后一级未选择的下拉框
+                if self.bdz_var.get() == BDZ_DEFAULT:
+                    self.update_bdz_values(list(set([g.bdz for g in result])))
+                    self.update_zxl_values([])
+                    self.update_fzxl_values([])
+                    self.update_tq_values([])
+                elif self.zxl_var.get() == ZXL_DEFAULT:
+                    self.update_zxl_values([] if bdz == '' else list(set([g.zxl for g in result])))
+                    self.update_fzxl_values([])
+                    self.update_tq_values([])
+                elif self.fzxl_var.get() == FZXL_DEFAULT:
+                    self.update_fzxl_values([] if zxl == '' else list(set([g.fzxl for g in result])))
+                    self.update_tq_values([])
+                elif self.tq_var.get() == TQ_DEFAULT:
+                    self.update_tq_values([] if fzxl == '' else list(set([g.tq for g in result])))
+            else:
+                # 用户关键词为空，更新下拉框为所有可能值
+                self.update_bdz_values(list(self.bdz_dict.keys()))
+                self.update_zxl_values([] if bdz == '' else self.bdz_dict[bdz])
+                self.update_fzxl_values([] if zxl == '' else self.zxl_dict[zxl])
+                self.update_tq_values([] if fzxl == '' else self.fzxl_dict[fzxl])
+
             self.search_condition = search_condition
+            return result
 
     def bdz_selected(self, event):
         self.bdz_choosen.selection_clear()
-        bdz = self.bdz_var.get()
-        zxl_values = [] if bdz == BDZ_DEFAULT else list(self.bdz_dict[bdz])
-        zxl_values.sort()
-        self.zxl_choosen.configure(values=[ZXL_DEFAULT] + zxl_values)
+        if self.bdz_var.get() == self.search_condition[0]:
+            return
         self.zxl_choosen.current(0)
         self.fzxl_choosen.configure(values=[FZXL_DEFAULT])
         self.fzxl_choosen.current(0)
@@ -102,10 +124,8 @@ class SearchFrame(tk.Frame):
 
     def zxl_selected(self, event):
         self.zxl_choosen.selection_clear()
-        zxl = self.zxl_var.get()
-        fzxl_values = [] if zxl == ZXL_DEFAULT else list(self.zxl_dict[zxl])
-        fzxl_values.sort()
-        self.fzxl_choosen.configure(values=[FZXL_DEFAULT] + fzxl_values)
+        if self.zxl_var.get() == self.search_condition[1]:
+            return
         self.fzxl_choosen.current(0)
         self.tq_choosen.configure(values=[TQ_DEFAULT])
         self.tq_choosen.current(0)
@@ -113,16 +133,35 @@ class SearchFrame(tk.Frame):
 
     def fzxl_selected(self, e):
         self.fzxl_choosen.selection_clear()
-        fzxl = self.fzxl_var.get()
-        tq_values = [] if fzxl == FZXL_DEFAULT else list(self.fzxl_dict[fzxl])
-        tq_values.sort()
-        self.tq_choosen.configure(values=[TQ_DEFAULT] + tq_values)
+        if self.fzxl_var.get() == self.search_condition[2]:
+            return
         self.tq_choosen.current(0)
         self.search()
 
     def tq_selected(self, e):
         self.tq_choosen.selection_clear()
         self.search()
+
+    def keyword_search(self, e):
+        if e.keysym_num == 65293:
+            self.search()
+
+    def update_bdz_values(self, bzd_values):
+        # 更新变电站下拉框
+        bzd_values.sort()
+        self.bdz_choosen.configure(values=[BDZ_DEFAULT] + bzd_values)
+
+    def update_zxl_values(self, zxl_values):
+        zxl_values.sort()
+        self.zxl_choosen.configure(values=[ZXL_DEFAULT] + zxl_values)
+
+    def update_fzxl_values(self, fzxl_values):
+        fzxl_values.sort()
+        self.fzxl_choosen.configure(values=[FZXL_DEFAULT] + fzxl_values)
+
+    def update_tq_values(self, tq_values):
+        tq_values.sort()
+        self.tq_choosen.configure(values=[TQ_DEFAULT] + tq_values)
 
 
 def parse_group_dict(groups):
@@ -141,6 +180,17 @@ def parse_group_dict(groups):
         zxl_dict[g.zxl].add(g.fzxl)
         fzxl_dict[g.fzxl].add(g.tq)
         tq_dict[g.tq].add(g.name)
+
+    def value2list(d):
+        for k in d:
+            v = list(d[k])
+            v.sort()
+            d[k] = v
+
+    value2list(bdz_dict)
+    value2list(zxl_dict)
+    value2list(fzxl_dict)
+    value2list(tq_dict)
 
     return bdz_dict, zxl_dict, fzxl_dict, tq_dict
 

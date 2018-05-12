@@ -2,9 +2,12 @@
 
 import os
 import io
+import logging.config
 import requests
 from PIL import Image
 from os import path
+
+logger = logging.getLogger('app')
 
 DATA_PATH = 'data'
 TEMPLATE_PATH = DATA_PATH + path.sep + 'templates'
@@ -67,7 +70,7 @@ def thumbnail(img_path):
         img = Image.open(img_path)
         while True:
             x,y = img.size
-            print(x, y)
+            logger.info('img size: %d,%d', x, y)
             if x > 2000 or y > 2000:
                 x = min(x, 2000)
                 y = min(y, 2000)
@@ -116,6 +119,7 @@ def test_thumbnail():
         thumbnail('/Users/jiangzhenxing/Pictures/' + pic)
 
 def main():
+    logging.config.fileConfig('config/logging.conf')
     test_thumbnail()
 
 if __name__ == '__main__':

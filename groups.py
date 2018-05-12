@@ -174,6 +174,7 @@ class GroupList(tk.Frame):
         返回符合条件的结果数量
         """
         n = 0
+        result = []
         for group in self.groups:
             row = group.row
             if group.valid and (bdz == '' or bdz == group.bdz) and (zxl == '' or zxl == group.zxl) \
@@ -181,10 +182,11 @@ class GroupList(tk.Frame):
                 row.show(row_num=n)
                 row.select()
                 n += 1
+                result.append(group)
             else:
                 row.hide()
         self.title.select()
-        return n
+        return result
 
     def show(self, groups):
         row = 0
@@ -290,11 +292,11 @@ class GroupFrame(tk.Frame):
         """
         返回符合条件的结果条数
         """
-        n = self.group_list.search(bdz, zxl, fzxl, tq, keyword)
+        result = self.group_list.search(bdz, zxl, fzxl, tq, keyword)
         scrollregion = (0, 0, WIDTH, self.group_list.reqheight())
         self.set_scrollregion(scrollregion)
-        self.total.configure(text='共 ' + str(n) + ' 个群')
-        return n
+        self.total.configure(text='共 ' + str(len(result)) + ' 个群')
+        return result
 
     def show_groups(self, groups):
         self.group_list.show(groups)
