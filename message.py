@@ -10,8 +10,6 @@ import util
 from tkinter import ttk, font, filedialog
 from template import Template
 
-PIC_FORMAT = {'jpeg','jpg','gif','png'}
-VIDEO_FORMAT = {'mp4'}
 logger = logging.getLogger('app')
 
 class MessageFrame(tk.Frame):
@@ -57,26 +55,16 @@ class MessageFrame(tk.Frame):
         """
         try:
             if self.send_btn_text.get() == '发送':
-                filepath = self.file_path.get()
                 content = self.get_content().strip()
-                if filepath:
-                    suffix = util.suffix(filepath)
-                    if suffix in PIC_FORMAT:
-                        filepath = util.thumbnail(filepath)
-                        content = '@img@' + filepath
-                    elif suffix in VIDEO_FORMAT:
-                        content = '@vid@' + filepath
-                    else:
-                        content = '@fil@' + filepath
-                    media_id = self.wxbot.upload_file(path=filepath)
-                    self.send_method(content=content, media_id=media_id)
-                elif content != '':
-                    self.send_method(content=content)
+                filepath = self.file_path.get()
+                if content or filepath:
+                    self.send_method(content=content, filepath=filepath)
                     self.send_btn_text.set('停止发送')
                 else:
                     self.show_info('请填写要发送的消息！', 'red')
             elif self.send_btn_text.get() == '停止发送':
                 self.stop_send_method()
+                self.send_btn_text.set('发送')
         except Exception as e:
             self.show_info('发送失败:' + str(e) + '\n' + traceback.format_exc(), fg='red')
             logger.warning('发送信息出现异常：', exc_info=e)

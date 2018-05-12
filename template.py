@@ -17,7 +17,7 @@ def parse_template():
     """
     templates = [Template('新建', '')]
     for fname in os.listdir(util.TEMPLATE_PATH):
-        templates.append(Template(name=fname[:fname.rfind('.')] if '.' in fname else fname, content=util.read_text('data/templates/'+fname)))
+        templates.append(Template(name=fname[:fname.rfind('.')] if '.' in fname else fname, content=util.read_text(util.TEMPLATE_PATH+os.path.sep+fname)))
     return templates
 
 

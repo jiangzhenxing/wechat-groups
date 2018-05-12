@@ -65,7 +65,7 @@ def show_main(wxbot):
 
     templates = parse_template()    # [Template('Temp' + str(i), 'Content  Content ContentContent ' + str(i)) for i in range(3)]
     logger.info('send.period: %s', config.getint('basic', 'send.period'))
-    main_frame = MainFrame(window, wxbot, groups, templates, send_period=config.getint('basic', 'send.period'))
+    main_frame = MainFrame(window, wxbot, groups, templates, send_period=config.getint('basic', 'send.period'), thumbnail=config.getboolean('basic', 'send.thumbnail'))
     main_frame.grid()
 
 def logout_callback():

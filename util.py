@@ -4,11 +4,12 @@ import os
 import io
 import requests
 from PIL import Image
+from os import path
 
-DATA_PATH = 'data/'
-TEMPLATE_PATH = DATA_PATH + 'templates/'
-THUMBNAIL_PATH = DATA_PATH + 'thumbnail/'
-LOG_PATH = DATA_PATH + 'logs/'
+DATA_PATH = 'data'
+TEMPLATE_PATH = DATA_PATH + path.sep + 'templates'
+THUMBNAIL_PATH = DATA_PATH + path.sep+ 'thumbnail'
+LOG_PATH = DATA_PATH + path.sep + 'logs'
 WORDS1 = set(list('`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+{}|:"<>?'))
 
 def substr(string, width):
@@ -46,7 +47,7 @@ def init_user(wxbot):
         os.mkdir(path)
 
 def user_path(wxbot):
-    return DATA_PATH + wxbot.self.puid
+    return DATA_PATH + path.sep + wxbot.self.puid
 
 
 def suffix(filename):
@@ -73,18 +74,14 @@ def thumbnail(img_path):
             bytes.close()
             if data_len < target_size:
                 break
-        img_path = THUMBNAIL_PATH + os.path.basename(img_path)
+        img_path = THUMBNAIL_PATH + path.sep + os.path.basename(img_path)
         img.save(img_path, 'jpeg', exif=img.info['exif'])
     print(img_path)
     return img_path
 
-def remove_thumbnail(filepath):
-    if filepath.startswith(THUMBNAIL_PATH):
-        os.remove(filepath)
-
 def clear_thumbnail():
     for f in os.listdir(THUMBNAIL_PATH):
-        os.removedirs(THUMBNAIL_PATH + os.path.sep + f)
+        os.remove(THUMBNAIL_PATH + path.sep + f)
 
 help_message = \
 """
