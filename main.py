@@ -21,7 +21,7 @@ class MainFrame(tk.Frame):
         super().__init__(master, **cnf)
         self.wxbot = wxbot
         self.send_period = send_period
-        tk.Label(master=self, text='欢迎使用微信群管理系统', fg='#333', font=font.Font(size=16, family='黑体', weight='bold')).grid(row=0, column=0, sticky=tk.S, pady=5)
+        tk.Label(master=self, text='欢迎使用微信群管理系统', fg='#333', font=font.Font(size=14, family='黑体', weight='bold')).grid(row=0, column=0, sticky=tk.S, pady=5)
         self.mframe = MessageFrame(self, wxbot, templates, self.send_message, self.stop_send)
         self.mframe.grid(row=1, column=0)
         self.gframe = GroupFrame(self, groups)

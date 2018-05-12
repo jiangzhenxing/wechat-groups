@@ -4,13 +4,15 @@
 """
 
 import tkinter as tk
+import logging
+import traceback
 import util
 from tkinter import ttk, font, filedialog
 from template import Template
 
-PIC_FORMAT = {'jpeg','jpg','gif','png','bmp'}
-VIDEO_FORMAT = {'flash','avi','wmv','mpeg','mp4','mov','mkv','flv','f4v','m4v','rmvb','rm','3gp','dat','ts','mts','vob'}
-
+PIC_FORMAT = {'jpeg','jpg','gif','png'}
+VIDEO_FORMAT = {'mp4'}
+logger = logging.getLogger('app')
 
 class MessageFrame(tk.Frame):
     def __init__(self, master, wxbot, templates, send_method, stop_send_method, width=300, height=500):
@@ -33,7 +35,7 @@ class MessageFrame(tk.Frame):
 
         # 文件选择
         self.file_path = tk.StringVar()
-        self.file_entry = tk.Entry(self, textvariable=self.file_path, width=20)
+        self.file_entry = tk.Entry(self, textvariable=self.file_path, width=25)
         self.file_entry.grid(row=2, column=0, sticky=tk.W)
         tk.Button(master=self, text='选择', command=self.select_file).grid(row=2, column=1, sticky=tk.W)
 
@@ -53,26 +55,32 @@ class MessageFrame(tk.Frame):
         """
         前缀 部分可为: ‘@fil@’, ‘@img@’, ‘@msg@’, ‘@vid@’ (不含引号)
         """
-        if self.send_btn_text.get() == '发送':
-            filepath = self.file_path.get()
-            content = self.get_content().strip()
-            if filepath:
-                media_id = self.wxbot.upload_file(path=filepath)
-                suffix = util.suffix(filepath)
-                if suffix in PIC_FORMAT:
-                    content = '@img@' + filepath
-                elif suffix in VIDEO_FORMAT:
-                    content = '@vid@' + filepath
+        try:
+            if self.send_btn_text.get() == '发送':
+                filepath = self.file_path.get()
+                content = self.get_content().strip()
+                if filepath:
+                    suffix = util.suffix(filepath)
+                    if suffix in PIC_FORMAT:
+                        filepath = util.thumbnail(filepath)
+                        content = '@img@' + filepath
+                    elif suffix in VIDEO_FORMAT:
+                        content = '@vid@' + filepath
+                    else:
+                        content = '@fil@' + filepath
+                    media_id = self.wxbot.upload_file(path=filepath)
+                    self.send_method(content=content, media_id=media_id)
+                elif content != '':
+                    self.send_method(content=content)
+                    self.send_btn_text.set('停止发送')
                 else:
-                    content = '@fil@' + filepath
-                self.send_method(content=content, media_id=media_id)
-            elif content != '':
-                self.send_method(content=content)
-                self.send_btn_text.set('停止发送')
-            else:
-                self.show_info('请填写要发送的消息！', 'red')
-        elif self.send_btn_text.get() == '停止发送':
-            self.stop_send_method()
+                    self.show_info('请填写要发送的消息！', 'red')
+            elif self.send_btn_text.get() == '停止发送':
+                self.stop_send_method()
+        except Exception as e:
+            self.show_info('发送失败:' + str(e) + '\n' + traceback.format_exc(), fg='red')
+            logger.warning('发送信息出现异常：', exc_info=e)
+            self.reset()
 
     def reset(self):
         self.send_btn_text.set('发送')
@@ -90,7 +98,7 @@ class MessageFrame(tk.Frame):
 
     def show_info(self, info, fg='#555'):
         self._infomation = info
-        self.infomation.set(info.replace('\n', '')[:21])
+        self.infomation.set(util.substr(info.replace('\n', ''), 30))
         self.info_label.configure(fg=fg)
 
     def clear_info(self):

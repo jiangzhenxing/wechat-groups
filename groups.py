@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import font
 from util import substr, help_message, user_path
 
-WIDTH = 650         # 列表窗口的宽度
+WIDTH = 720         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
 BGCOLORS = ['white', '#FFE']    # 奇偶行的背景色
 
@@ -313,7 +313,7 @@ class GroupFrame(tk.Frame):
 
     def help(self):
         window_help = tk.Toplevel(self)
-        window_help.geometry('750x500+300+100')
+        window_help.geometry('800x500+250+100')
         window_help.title('帮助信息')
         tk.Label(window_help, text=help_message, font=font.Font(size=12), justify=tk.LEFT).pack()
 
@@ -330,7 +330,7 @@ def parse_group(wxbot):
             f.write('变电站,主线路,分支线路,台区,群名称\n')
             for g in wxgroups:
                 f.write(',,,,' + g.name + '\n')
-                groups.append(Group('', '', '', g.name, wxgroup=g))
+                groups.append(Group('', '', '', '', g.name, wxgroup=g))
     else:
         wxgroup_dict = {g.name: g for g in wxgroups}
         with open(path+'/groups.csv', encoding='utf-8') as f:
