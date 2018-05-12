@@ -75,17 +75,16 @@ def thumbnail(img_path):
                 x = min(x, 2000)
                 y = min(y, 2000)
             else:
-                x,y = int(0.9 * x), int(0.9 * y)
+                x,y = int(0.8 * x), int(0.8 * y)
             img.thumbnail((x,y))
-            bytes = io.BytesIO()
-            img.save(bytes, 'jpeg', quality=quality)
-            data_len = len(bytes.getvalue())
-            bytes.close()
-            if data_len < target_size:
-                break
-        img_path = THUMBNAIL_PATH + path.sep + os.path.basename(img_path)
-        img.save(img_path, 'jpeg', exif=img.info['exif'], quality=quality)
-    print(img_path)
+            with io.BytesIO() as buffer:
+                img.save(buffer, 'jpeg', exif=img.info['exif'], quality=quality)
+                if len(buffer.getvalue()) < target_size:
+                    img_path = THUMBNAIL_PATH + path.sep + os.path.basename(img_path)
+                    with open(img_path, 'wb') as f:
+                        f.write(buffer.getvalue())
+                    break
+    logger.info(img_path)
     return img_path
 
 def clear_thumbnail():
