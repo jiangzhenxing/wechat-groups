@@ -6,6 +6,7 @@ import threading
 import logging.config
 import time
 import configparser
+import util
 from login import LoginFrame
 from main import MainFrame
 from groups import parse_group
@@ -19,6 +20,7 @@ from util import init, init_user
 init()
 config = configparser.ConfigParser()
 config.read('config/app.ini')
+util.encoding = config.get('basic', 'encoding', fallback=None)
 logging.config.fileConfig('config/logging.conf')
 logger = logging.getLogger('app')
 window = tk.Tk()

@@ -18,7 +18,7 @@ class MessageFrame(tk.Frame):
         self.wxbot = wxbot
         self.send_method = send_method
         self.stop_send_method = stop_send_method
-        tk.Label(self, text='您好, %s(%s)' % (wxbot.self.name, wxbot.self.puid), padx=5, pady=5).grid(row=0, column=0)
+        tk.Label(self, text='您好, %s(%s)' % (util.filter_unicode(wxbot.self.name), wxbot.self.puid), padx=5, pady=5).grid(row=0, column=0)
         logout = tk.Label(self, text='退出', cursor='hand2', padx=5)
         logout.grid(row=0, column=0, columnspan=3, sticky=tk.E)
         logout.bind('<Button-1>', lambda e: wxbot.logout())

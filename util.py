@@ -10,10 +10,16 @@ from os import path
 logger = logging.getLogger('app')
 
 DATA_PATH = 'data'
+USER_PATH = DATA_PATH + path.sep + 'user'
 TEMPLATE_PATH = DATA_PATH + path.sep + 'templates'
 THUMBNAIL_PATH = DATA_PATH + path.sep+ 'thumbnail'
 LOG_PATH = DATA_PATH + path.sep + 'logs'
 WORDS1 = set(list('`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+{}|:"<>?'))
+
+encoding = 'utf-8'
+
+def filter_unicode(s):
+    return ''.join(filter(lambda x: u'\u0000' < x < '\uffff', s))
 
 def substr(string, width):
     """
@@ -30,12 +36,15 @@ def substr(string, width):
     return string[:i+1]
 
 def read_text(file):
-    with open(file, encoding='utf-8') as f:
+    logger.info(encoding)
+    with open(file, encoding=encoding) as f:
         return f.read(os.path.getsize(file))
 
 def init():
     if not os.path.exists(DATA_PATH):
         os.mkdir(DATA_PATH)
+    if not os.path.exists(USER_PATH):
+        os.mkdir(USER_PATH)
     if not os.path.exists(TEMPLATE_PATH):
         os.mkdir(TEMPLATE_PATH)
     if not os.path.exists(LOG_PATH):
@@ -50,8 +59,7 @@ def init_user(wxbot):
         os.mkdir(path)
 
 def user_path(wxbot):
-    return DATA_PATH + path.sep + wxbot.self.puid
-
+    return USER_PATH + path.sep + filter_unicode(wxbot.self.name)
 
 def suffix(filename):
     return filename[filename.rfind('.')+1:].lower()

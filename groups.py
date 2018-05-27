@@ -3,14 +3,16 @@
 群列表
 """
 import os
+import logging
 import tkinter as tk
 from tkinter import font
-from util import substr, help_message, user_path
+from util import substr, filter_unicode, help_message, user_path, encoding
 
 WIDTH = 720         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
 BGCOLORS = ['white', '#FFE']    # 奇偶行的背景色
 
+logger = logging.getLogger('app')
 
 class Group:
     """
@@ -24,11 +26,11 @@ class Group:
         :param tq:      台区
         :param name:    群名称
         """
-        self.bdz = bdz
-        self.zxl = zxl
-        self.fzxl = fzxl
-        self.tq = tq
-        self.name = name
+        self.bdz = filter_unicode(bdz)
+        self.zxl = filter_unicode(zxl)
+        self.fzxl = filter_unicode(fzxl)
+        self.tq = filter_unicode(tq)
+        self.name = filter_unicode(name)
         self.wxgroup = wxgroup
         self.row = row
         self.valid = valid
@@ -87,7 +89,7 @@ class GroupRow:
         bgcolor = BGCOLORS[row % 2] if group.valid else 'red'
         ft = font.Font(size=11)
         sticky = tk.N + tk.E + tk.S + tk.W
-
+        logger.info("%s,%s,%s,%s,%s,%s", group.bdz, group.zxl, group.fzxl, group.tq, group.name, substr(group.name, 18))
         self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=3, state=tk.NORMAL if group.valid else tk.DISABLED)
         self.lb_bdz = tk.Label(master, text=substr(group.bdz, 11), width=13, bg=bgcolor, font=ft)
         self.lb_zxl = tk.Label(master, text=substr(group.zxl, 11), width=13, bg=bgcolor, font=ft)
@@ -327,20 +329,21 @@ def parse_group(wxbot):
     path = user_path(wxbot)
     wxgroups = wxbot.groups()
     groups = []
+    logger.info(encoding)
     if not os.path.exists(path+'/groups.csv'):
-        with open(path+'/groups.csv', 'w', encoding='utf-8') as f:
+        with open(path+'/groups.csv', 'w', encoding=encoding) as f:
             f.write('变电站,主线路,分支线路,台区,群名称\n')
             for g in wxgroups:
                 f.write(',,,,' + g.name + '\n')
                 groups.append(Group('', '', '', '', g.name, wxgroup=g))
     else:
         wxgroup_dict = {g.name: g for g in wxgroups}
-        with open(path+'/groups.csv', encoding='utf-8') as f:
+        with open(path+'/groups.csv', encoding=encoding) as f:
             f.readline()    # skip title
             for line in f:
                 if len(line.strip()) == 0:
                     continue
-                bdz,zxl,fzxl,tq,name = line.strip().split(',')
+                bdz,zxl,fzxl,tq,name = line.strip().split(',', 4)
                 if name in wxgroup_dict:
                     groups.append(Group(bdz, zxl, fzxl, tq, name, wxgroup=wxgroup_dict[name]))
                 else:
