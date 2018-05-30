@@ -4,6 +4,8 @@ import os
 import io
 import logging.config
 import requests
+import time
+import configparser
 from PIL import Image
 from os import path
 
@@ -14,12 +16,20 @@ USER_PATH = DATA_PATH + path.sep + 'user'
 TEMPLATE_PATH = DATA_PATH + path.sep + 'templates'
 THUMBNAIL_PATH = DATA_PATH + path.sep+ 'thumbnail'
 LOG_PATH = DATA_PATH + path.sep + 'logs'
+TMP_PATH = DATA_PATH + path.sep + 'tmp'
 WORDS1 = set(list('`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+{}|:"<>?'))
 
-encoding = 'utf-8'
+encoding = 'gbk'
+thumbnail_target = 500000
 
 def filter_unicode(s):
     return ''.join(filter(lambda x: u'\u0000' < x < '\uffff', s))
+
+def has_not_unicode(s):
+    for x in s:
+        if not u'\u0000' < x < '\uffff':
+            return True
+    return False
 
 def substr(string, width):
     """
@@ -41,6 +51,11 @@ def read_text(file):
         return f.read(os.path.getsize(file))
 
 def init():
+    global encoding, thumbnail_target
+    config = configparser.ConfigParser()
+    config.read('config/app.ini')
+    encoding = config.get('basic', 'encoding', fallback=None)
+    thumbnail_target = config.getint('basic', 'thumbnail.target', fallback=500000)
     if not os.path.exists(DATA_PATH):
         os.mkdir(DATA_PATH)
     if not os.path.exists(USER_PATH):
@@ -51,7 +66,9 @@ def init():
         os.mkdir(LOG_PATH)
     if not os.path.exists(THUMBNAIL_PATH):
         os.mkdir(THUMBNAIL_PATH)
-    clear_thumbnail()
+    if not os.path.exists(TMP_PATH):
+        os.mkdir(TMP_PATH)
+    clear()
 
 def init_user(wxbot):
     path = user_path(wxbot)
@@ -71,7 +88,8 @@ def valid_licence():
     return os.path.exists('data/__licence__')
 
 def thumbnail(img_path):
-    target_size = 500 * 1000
+    target_size = thumbnail_target
+    logger.info('target_size: %s', target_size)
     quality = 95
     filesize = os.path.getsize(img_path)
     if filesize > target_size:
@@ -79,31 +97,33 @@ def thumbnail(img_path):
         while True:
             x,y = img.size
             logger.info('img size: %d,%d', x, y)
-            if x > 2000 or y > 2000:
-                x = min(x, 2000)
-                y = min(y, 2000)
+            if x > 1600 or y > 1600:
+                x = min(x, 1600)
+                y = min(y, 1600)
             else:
                 x,y = int(0.8 * x), int(0.8 * y)
             img.thumbnail((x,y))
             with io.BytesIO() as buffer:
                 img.save(buffer, 'jpeg', exif=img.info['exif'], quality=quality)
                 if len(buffer.getvalue()) < target_size:
-                    img_path = THUMBNAIL_PATH + path.sep + os.path.basename(img_path)
+                    img_path = THUMBNAIL_PATH + path.sep + str(int(time.time() * 1000)) + '.jpeg'
                     with open(img_path, 'wb') as f:
                         f.write(buffer.getvalue())
                     break
     logger.info(img_path)
     return img_path
 
-def clear_thumbnail():
+def clear():
     for f in os.listdir(THUMBNAIL_PATH):
         os.remove(THUMBNAIL_PATH + path.sep + f)
+    for f in os.listdir(TMP_PATH):
+        os.remove(TMP_PATH + path.sep + f)
 
 help_message = \
 """
-1. 第一次登录本系统时，会把你的所有群列表保存在'data/@puid(名称后面括号里的字母)/groups.csv'中，
+1. 第一次登录本系统时，会把你的所有群列表保存在'data/user/你的微信名/groups.csv'中，
 
-   可以使用excel 或WPS打开，输入变电站等信息，保存时重新导出CSV格式的文件并覆盖原'groups.csv'。
+   可以使用 WPS 打开，输入变电站等信息，保存时重新导出CSV格式的文件并覆盖原'groups.csv'。
    
 2. 消息模板在 'data/templates/' 文件夹中，一个txt文件即一个模版，可以直接用记事本打开编辑。
 
@@ -115,9 +135,11 @@ help_message = \
 
 5. 为了避免因消息发送过快导致的问题，所以每发送一条消息需要等待几秒钟时间。
 
-6. 发送图片的格式为: 'jpeg','jpg','gif','png'，视频格式为：mp4
+6. 发送图片的格式为: 'jpeg','jpg','gif','png'
 
 7. 受限于微信WEB接口，目前只能发送小于500K的图片或文件，发送大文件很可能失败。
+
+8. 发送消息时优先发送文件，没有选择文件时发送文本消息。
 """
 
 def test_thumbnail():

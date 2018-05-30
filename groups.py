@@ -6,7 +6,7 @@ import os
 import logging
 import tkinter as tk
 from tkinter import font
-from util import substr, filter_unicode, help_message, user_path, encoding
+from util import substr, filter_unicode, help_message, user_path, has_not_unicode
 
 WIDTH = 720         # 列表窗口的宽度
 HEIGHT = 600        # 列表窗口的高度
@@ -322,7 +322,7 @@ class GroupFrame(tk.Frame):
         tk.Label(window_help, text=help_message, font=font.Font(size=12), justify=tk.LEFT).pack()
 
 
-def parse_group(wxbot):
+def parse_group(wxbot, encoding):
     """
     从文件中解析微信群
     """
@@ -334,8 +334,9 @@ def parse_group(wxbot):
         with open(path+'/groups.csv', 'w', encoding=encoding) as f:
             f.write('变电站,主线路,分支线路,台区,群名称\n')
             for g in wxgroups:
-                f.write(',,,,' + g.name + '\n')
-                groups.append(Group('', '', '', '', g.name, wxgroup=g))
+                if not has_not_unicode(g.name):
+                    f.write(',,,,' + g.name + '\n')
+                    groups.append(Group('', '', '', '', g.name, wxgroup=g))
     else:
         wxgroup_dict = {g.name: g for g in wxgroups}
         with open(path+'/groups.csv', encoding=encoding) as f:
