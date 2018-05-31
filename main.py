@@ -6,11 +6,13 @@ import traceback
 import random
 import logging
 import util
+import shutil
 from tkinter import font
 from message import MessageFrame
 from search import parse_group_dict, SearchFrame
 from groups import Group,GroupFrame
 from template import Template
+from os import path
 
 PIC_FORMAT = {'jpeg','jpg','gif','png'}
 VIDEO_FORMAT = {'mp4'}
@@ -30,13 +32,17 @@ class MainFrame(tk.Frame):
         self.mframe.grid(row=1, column=0)
         self.gframe = GroupFrame(self, groups)
         self.gframe.grid(row=1, column=1, sticky=tk.W)
-        self.sframe = SearchFrame(self, *parse_group_dict(groups), group_frame=self.gframe)
+        self.sframe = SearchFrame(self, *parse_group_dict(groups), message_frame=self.mframe, group_frame=self.gframe)
         self.sframe.grid(row=0, column=1, sticky=tk.W)
         self.stop_send_flag = False
 
     def send_message(self, content=None, filepath=None):
         print('MainFrame:', content, filepath)
         groups = self.gframe.get_selected()
+        if len(groups) == 0:
+            self.show_info('请选择群', color='red')
+            self.mframe.reset_btn()
+            return
         self.gframe.reset()
         self.stop_send_flag = False
         threading.Thread(target=self._send, args=(groups, content, filepath), daemon=True).start()
@@ -46,6 +52,9 @@ class MainFrame(tk.Frame):
         if filepath:
             try:
                 suffix = util.suffix(filepath)
+                dist_path = util.TMP_PATH + path.sep + str(int(time.time() * 1000)) + '.' + suffix
+                shutil.copy(filepath, dist_path)
+                filepath = dist_path
                 if suffix in PIC_FORMAT:
                     if self.thumbnail:
                         self.show_info('正在压缩图片...', color='blue')

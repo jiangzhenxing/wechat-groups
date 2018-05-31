@@ -6,6 +6,7 @@ import threading
 import logging.config
 import time
 import configparser
+import util
 from login import LoginFrame
 from main import MainFrame
 from groups import parse_group
@@ -19,6 +20,8 @@ from util import init, init_user
 init()
 config = configparser.ConfigParser()
 config.read('config/app.ini')
+encoding = config.get('basic', 'encoding', fallback=None)
+
 logging.config.fileConfig('config/logging.conf')
 logger = logging.getLogger('app')
 window = tk.Tk()
@@ -59,9 +62,9 @@ def wxlogin():
 
 def show_main(wxbot):
     global main_frame
-    window.geometry('1050x680+200+50')
+    window.geometry('1080x680+200+50')
 
-    groups = parse_group(wxbot)  # [Group('变电所变电所aaa' + str(i), '主经路主aaabbbb' + str(i), '分支线路分支线路支线路' + str(i), '群名称群名称名称aaaaaa' + str(i)) for i in range(60)]
+    groups = parse_group(wxbot, encoding)  # [Group('变电所变电所aaa' + str(i), '主经路主aaabbbb' + str(i), '分支线路分支线路支线路' + str(i), '群名称群名称名称aaaaaa' + str(i)) for i in range(60)]
 
     templates = parse_template()    # [Template('Temp' + str(i), 'Content  Content ContentContent ' + str(i)) for i in range(3)]
     logger.info('send.period: %s', config.getint('basic', 'send.period'))

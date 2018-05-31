@@ -18,7 +18,7 @@ class MessageFrame(tk.Frame):
         self.wxbot = wxbot
         self.send_method = send_method
         self.stop_send_method = stop_send_method
-        tk.Label(self, text='您好, %s(%s)' % (wxbot.self.name, wxbot.self.puid), padx=5, pady=5).grid(row=0, column=0)
+        tk.Label(self, text='您好, %s' % (util.filter_unicode(wxbot.self.name)), padx=5, pady=5).grid(row=0, column=0)
         logout = tk.Label(self, text='退出', cursor='hand2', padx=5)
         logout.grid(row=0, column=0, columnspan=3, sticky=tk.E)
         logout.bind('<Button-1>', lambda e: wxbot.logout())
@@ -58,8 +58,8 @@ class MessageFrame(tk.Frame):
                 content = self.get_content().strip()
                 filepath = self.file_path.get()
                 if content or filepath:
-                    self.send_method(content=content, filepath=filepath)
                     self.send_btn_text.set('停止发送')
+                    self.send_method(content=content, filepath=filepath)
                 else:
                     self.show_info('请填写要发送的消息！', 'red')
             elif self.send_btn_text.get() == '停止发送':
@@ -70,9 +70,24 @@ class MessageFrame(tk.Frame):
             logger.warning('发送信息出现异常：', exc_info=e)
             self.reset()
 
-    def reset(self):
+    def reset_btn(self):
         self.send_btn_text.set('发送')
+
+    def reset_file(self):
         self.file_path.set('')
+
+    def reset(self):
+        self.reset_btn()
+        self.reset_file()
+
+    def set_tdinfo(self, info):
+        """
+        设置停电信息
+        """
+        if info.strip():
+            text = self.texts[1]
+            text.delete('1.0', tk.END)
+            text.insert(tk.END, info)
 
     def get_content(self):
         current = self.book.index('current')

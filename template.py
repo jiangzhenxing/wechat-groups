@@ -15,7 +15,7 @@ def parse_template():
     """
     从文件中解析模板
     """
-    templates = [Template('新建', '')]
+    templates = [Template('新建', ''), Template('停电信息', util.read_text(util.DEFAULT_TD_INFO))]
     for fname in os.listdir(util.TEMPLATE_PATH):
         templates.append(Template(name=fname[:fname.rfind('.')] if '.' in fname else fname, content=util.read_text(util.TEMPLATE_PATH+os.path.sep+fname)))
     return templates

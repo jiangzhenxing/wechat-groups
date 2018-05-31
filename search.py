@@ -1,8 +1,11 @@
 # coding=utf-8
 import tkinter as tk
 import logging
+import util
+import os
 from tkinter import ttk
 from groups import Group, GroupFrame
+from os import path
 
 BDZ_DEFAULT = '请选择变电站'
 ZXL_DEFAULT = '请选择主线路'
@@ -17,12 +20,13 @@ class SearchFrame(tk.Frame):
     搜索框
     包含变电站，主经路，分支线路的选择和按群名称搜索
     """
-    def __init__(self, master, bdz_dict, zxl_dict, fzxl_dict, tq_dict, group_frame):
+    def __init__(self, master, bdz_dict, zxl_dict, fzxl_dict, tq_dict, message_frame, group_frame):
         tk.Frame.__init__(self, master)
         self.bdz_dict = bdz_dict
         self.zxl_dict = zxl_dict
         self.fzxl_dict = fzxl_dict
         self.tq_dict = tq_dict
+        self.message_frame = message_frame
         self.group_frame = group_frame
 
         # 变电所选择
@@ -135,6 +139,11 @@ class SearchFrame(tk.Frame):
         self.fzxl_choosen.selection_clear()
         if self.fzxl_var.get() == self.search_condition[2]:
             return
+        fzxl = self.fzxl_var.get()
+        tdfile = util.TD_PATH + path.sep + fzxl + '.txt'
+        if path.exists(tdfile):
+            tdinfo = util.read_text(tdfile)
+            self.message_frame.set_tdinfo(tdinfo)
         self.tq_choosen.current(0)
         self.search()
 
@@ -144,7 +153,13 @@ class SearchFrame(tk.Frame):
 
     def keyword_search(self, e):
         if e.keysym_num == 65293:
-            self.search()
+            result = self.search()
+            name = '' if self.name_var.get() == GROUP_NAME_DEFAULT else self.name_var.get()
+            if result and name:
+                for p in os.listdir(util.TD_PATH):
+                    if name in p:
+                        self.message_frame.set_tdinfo(util.read_text(util.TD_PATH + path.sep + p))
+                        break
 
     def update_bdz_values(self, bzd_values):
         # 更新变电站下拉框

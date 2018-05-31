@@ -1,0 +1,9 @@
+.idea
+test.py
+data/
+dist/
+build/
+__pycache__
+wxpy_puid.pkl
+app.spec
+.DS_Store
