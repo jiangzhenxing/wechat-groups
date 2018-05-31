@@ -61,23 +61,22 @@ def init():
     config.read('config/app.ini')
     encoding = config.get('basic', 'encoding', fallback=None)
     thumbnail_target = config.getint('basic', 'thumbnail.target', fallback=500000)
-    createDir(DATA_PATH)
-    createDir(USER_PATH)
-    createDir(TEMPLATE_PATH)
-    createDir(LOG_PATH)
-    createDir(THUMBNAIL_PATH)
-    createDir(TMP_PATH)
-    createDir(TD_PATH)
+    create_dir(DATA_PATH)
+    create_dir(USER_PATH)
+    create_dir(TEMPLATE_PATH)
+    create_dir(LOG_PATH)
+    create_dir(THUMBNAIL_PATH)
+    create_dir(TMP_PATH)
+    create_dir(TD_PATH)
     clear()
 
-def createDir(dir_path):
+def create_dir(dir_path):
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
 
 def init_user(wxbot):
-    path = user_path(wxbot)
-    if not os.path.exists(path):
-        os.mkdir(path)
+    userpath = user_path(wxbot)
+    create_dir(userpath)
 
 def user_path(wxbot):
     return USER_PATH + path.sep + filter_unicode(wxbot.self.name)
