@@ -112,6 +112,13 @@ class SearchFrame(tk.Frame):
                 self.update_fzxl_values([] if zxl == '' else self.zxl_dict[zxl])
                 self.update_tq_values([] if fzxl == '' else self.fzxl_dict[fzxl])
 
+            if result:
+                fzxl = result[0].fzxl
+                for p in os.listdir(util.TD_PATH):
+                    if fzxl == util.basename(p):
+                        self.message_frame.set_tdinfo(util.read_text(util.TD_PATH + path.sep + p))
+                        break
+
             self.search_condition = search_condition
             return result
 
@@ -153,13 +160,7 @@ class SearchFrame(tk.Frame):
 
     def keyword_search(self, e):
         if e.keysym_num == 65293:
-            result = self.search()
-            name = '' if self.name_var.get() == GROUP_NAME_DEFAULT else self.name_var.get()
-            if result and name:
-                for p in os.listdir(util.TD_PATH):
-                    if name in p:
-                        self.message_frame.set_tdinfo(util.read_text(util.TD_PATH + path.sep + p))
-                        break
+            self.search()
 
     def update_bdz_values(self, bzd_values):
         # 更新变电站下拉框

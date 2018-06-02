@@ -6,6 +6,7 @@ import threading
 import logging.config
 import time
 import configparser
+import traceback
 import util
 from login import LoginFrame
 from main import MainFrame
@@ -56,7 +57,7 @@ def wxlogin():
     wxbot.enable_puid('wxpy_puid.pkl')
     wxbot.core.send_video()
     init_user(wxbot)
-    logger.info('%s login', wxbot.self.puid)
+    logger.info('%s login', util.filter_unicode(wxbot.self.name))
     login_frame.destroy()
     return wxbot
 
@@ -64,9 +65,9 @@ def show_main(wxbot):
     global main_frame
     window.geometry('1080x680+200+50')
 
-    groups = parse_group(wxbot, encoding)  # [Group('变电所变电所aaa' + str(i), '主经路主aaabbbb' + str(i), '分支线路分支线路支线路' + str(i), '群名称群名称名称aaaaaa' + str(i)) for i in range(60)]
+    groups = parse_group(wxbot, encoding)
+    templates = parse_template()
 
-    templates = parse_template()    # [Template('Temp' + str(i), 'Content  Content ContentContent ' + str(i)) for i in range(3)]
     logger.info('send.period: %s', config.getint('basic', 'send.period'))
     main_frame = MainFrame(window, wxbot, groups, templates, send_period=config.getint('basic', 'send.period'), thumbnail=config.getboolean('basic', 'send.thumbnail'))
     main_frame.grid()
@@ -84,6 +85,12 @@ def logout_callback():
     logout_btn = tk.Button(window, text='重新登录', command=relogin)
     logout_btn.grid(row=0, column=1)
 
+def exception(e):
+    window.geometry('600x500+400+100')
+    text = tk.Text(window, width=400, height=400)
+    text.insert(tk.END, '程序启动失败，请与管理员联系并报告以下异常信息:\n' + str(e) + '\n' + traceback.format_exc())
+    text.grid(row=0, column=0)
+
 def start():
     try:
         logger.info('starting...')
@@ -92,6 +99,7 @@ def start():
         logger.info('started')
     except Exception as e:
         logger.warning('exception:', exc_info=e)
+        exception(e)
 
 
 login()

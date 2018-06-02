@@ -15,10 +15,17 @@ def parse_template():
     """
     从文件中解析模板
     """
-    templates = [Template('新建', ''), Template('停电信息', util.read_text(util.DEFAULT_TD_INFO))]
-    for fname in os.listdir(util.TEMPLATE_PATH):
-        templates.append(Template(name=fname[:fname.rfind('.')] if '.' in fname else fname, content=util.read_text(util.TEMPLATE_PATH+os.path.sep+fname)))
-    return templates
+    try:
+        templates = [Template('停电信息', util.read_text(util.DEFAULT_TD_INFO))]
+        for fname in os.listdir(util.TEMPLATE_PATH):
+            try:
+                templates.append(Template(name=fname[:fname.rfind('.')] if '.' in fname else fname, content=util.read_text(util.TEMPLATE_PATH+os.path.sep+fname)))
+            except Exception as ee:
+                raise Exception('解析模板信息出现异常，请检查: ' + fname, ee)
+        templates.append(Template('新建', ''))
+        return templates
+    except Exception as e:
+        raise Exception('解析模板信息出现异常', e)
 
 
 def test_parse_template():

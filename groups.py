@@ -5,7 +5,9 @@
 import os
 import logging
 import tkinter as tk
+import util
 from tkinter import font
+from os import path
 from util import substr, filter_unicode, help_message, user_path, has_not_unicode
 
 WIDTH = 750         # 列表窗口的宽度
@@ -89,7 +91,7 @@ class GroupRow:
         bgcolor = BGCOLORS[row % 2] if group.valid else 'red'
         ft = font.Font(size=11)
         sticky = tk.N + tk.E + tk.S + tk.W
-        logger.info("%s,%s,%s,%s,%s,%s", group.bdz, group.zxl, group.fzxl, group.tq, group.name, substr(group.name, 18))
+        logger.debug("%s,%s,%s,%s,%s,%s", group.bdz, group.zxl, group.fzxl, group.tq, group.name, substr(group.name, 18))
         self.ckb = tk.Checkbutton(master, variable=self._value, bg=bgcolor, pady=3, state=tk.NORMAL if group.valid else tk.DISABLED)
         self.lb_bdz = tk.Label(master, text=substr(group.bdz, 11), width=13, bg=bgcolor, font=ft)
         self.lb_zxl = tk.Label(master, text=substr(group.zxl, 11), width=13, bg=bgcolor, font=ft)
@@ -326,30 +328,37 @@ def parse_group(wxbot, encoding):
     """
     从文件中解析微信群
     """
-    path = user_path(wxbot)
+
+    name = util.filter_unicode(wxbot.self.name)
+    filepath = util.GROUP_PATH + path.sep + name + '.csv'
     wxgroups = wxbot.groups()
     groups = []
     logger.info(encoding)
-    if not os.path.exists(path+'/groups.csv'):
-        with open(path+'/groups.csv', 'w', encoding=encoding) as f:
-            f.write('变电站,主线路,分支线路,台区,群名称\n')
-            for g in wxgroups:
-                if not has_not_unicode(g.name):
-                    f.write(',,,,' + g.name + '\n')
-                    groups.append(Group('', '', '', '', g.name, wxgroup=g))
-    else:
-        wxgroup_dict = {g.name: g for g in wxgroups}
-        with open(path+'/groups.csv', encoding=encoding) as f:
-            f.readline()    # skip title
-            for line in f:
-                if len(line.strip()) == 0:
-                    continue
-                bdz,zxl,fzxl,tq,name = line.strip().split(',', 4)
-                if name in wxgroup_dict:
-                    groups.append(Group(bdz, zxl, fzxl, tq, name, wxgroup=wxgroup_dict[name]))
-                else:
-                    groups.insert(0, Group(bdz, zxl, fzxl, tq, name, valid=False))
+
+    try:
+        if not os.path.exists(filepath):
+            with open(filepath, 'w', encoding=encoding) as f:
+                f.write('变电站,主线路,分支线路,台区,群名称\n')
+                for g in wxgroups:
+                    if not has_not_unicode(g.name):
+                        f.write(',,,,' + g.name + '\n')
+                        groups.append(Group('', '', '', '', g.name, wxgroup=g))
+        else:
+            wxgroup_dict = {g.name: g for g in wxgroups}
+            with open(filepath, encoding=encoding) as f:
+                f.readline()    # skip title
+                for line in f:
+                    if len(line.strip()) == 0:
+                        continue
+                    bdz,zxl,fzxl,tq,name = line.strip().split(',', 4)
+                    if name in wxgroup_dict:
+                        groups.append(Group(bdz, zxl, fzxl, tq, name, wxgroup=wxgroup_dict[name]))
+                    else:
+                        groups.insert(0, Group(bdz, zxl, fzxl, tq, name, valid=False))
+    except Exception as e:
+        raise Exception('解析微信群信息时异常，请检查:' + filepath, e)
     return groups
+
 
 #vbar.set(*map(lambda x: x-0.1, vbar.get()))
 # tk.Button(text='down', command=move).grid(row=1, column=0) #print(vbar.delta(0,-50))

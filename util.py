@@ -11,14 +11,17 @@ from os import path
 
 logger = logging.getLogger('app')
 
+GROUP_PATH = '微信群信息'
+TEMPLATE_PATH = '信息模版'
+TD_PATH = '停电信息'
+DEFAULT_TD_INFO = TD_PATH + path.sep + '默认.txt'
+
 DATA_PATH = 'data'
 USER_PATH = DATA_PATH + path.sep + 'user'
-TEMPLATE_PATH = DATA_PATH + path.sep + 'templates'
 THUMBNAIL_PATH = DATA_PATH + path.sep+ 'thumbnail'
 LOG_PATH = DATA_PATH + path.sep + 'logs'
 TMP_PATH = DATA_PATH + path.sep + 'tmp'
-TD_PATH = DATA_PATH + path.sep + '停电信息'
-DEFAULT_TD_INFO = DATA_PATH + path.sep + '停电信息/默认.txt'
+
 WORDS1 = set(list('`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+{}|:"<>?'))
 
 encoding = 'gbk'
@@ -61,13 +64,17 @@ def init():
     config.read('config/app.ini')
     encoding = config.get('basic', 'encoding', fallback=None)
     thumbnail_target = config.getint('basic', 'thumbnail.target', fallback=500000)
+
+    create_dir(GROUP_PATH)
+    create_dir(TEMPLATE_PATH)
+    create_dir(TD_PATH)
+
     create_dir(DATA_PATH)
     create_dir(USER_PATH)
-    create_dir(TEMPLATE_PATH)
     create_dir(LOG_PATH)
     create_dir(THUMBNAIL_PATH)
     create_dir(TMP_PATH)
-    create_dir(TD_PATH)
+
     clear()
 
 def create_dir(dir_path):
@@ -83,6 +90,12 @@ def user_path(wxbot):
 
 def suffix(filename):
     return filename[filename.rfind('.')+1:].lower()
+
+def basename(filename):
+    end = filename.rfind('.')
+    if end < 0:
+        return filename
+    return filename[0:end]
 
 def get_net_time():
     return requests.get('http://cgi.im.qq.com/cgi-bin/cgi_svrtime').text.strip()
@@ -124,11 +137,13 @@ def clear():
 
 help_message = \
 """
-1. 第一次登录本系统时，会把你的所有群列表保存在'data/user/你的微信名/groups.csv'中，
+1. 第一次登录本系统时，会把你的所有群列表保存在'微信群信息/你的微信名.csv'中，
 
-   可以使用 WPS 打开，输入变电站等信息，保存时重新导出CSV格式的文件并覆盖原'groups.csv'。
+   可以使用 WPS 编辑，输入变电站等信息，然后保存。
    
-2. 消息模板在 'data/templates/' 文件夹中，一个txt文件即一个模版，可以直接用记事本打开编辑。
+2. 消息模板在 '信息模版' 文件夹中，一个txt文件即一个模版，可以直接用记事本打开编辑。
+
+3. 停电信息在'停电信息'文件夹中，txt 格式，文件名与分支线路相同，搜索微信群时会自动找到相应分支线路的
 
 3. 要发送消息的群请在手机微信群设置中，选中'保存到通讯录'，否则本系统可能获取不到。
 
