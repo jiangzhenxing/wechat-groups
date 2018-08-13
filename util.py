@@ -100,7 +100,7 @@ def basename(filename):
 def get_net_time():
     return requests.get('http://cgi.im.qq.com/cgi-bin/cgi_svrtime').text.strip()
 
-def valid_licence():
+def check_licence():
     return os.path.exists('data/__licence__')
 
 def thumbnail(img_path):
@@ -141,23 +141,25 @@ help_message = \
 
    可以使用 WPS 编辑，输入变电站等信息，然后保存。
    
-2. 消息模板在 '信息模版' 文件夹中，一个txt文件即一个模版，可以直接用记事本打开编辑。
+2. 停电信息在'停电信息'文件夹中，txt 格式，文件名与分支线路相同，
 
-3. 停电信息在'停电信息'文件夹中，txt 格式，文件名与分支线路相同，搜索微信群时会自动找到相应分支线路的
+   搜索微信群时会自动找到相应分支线路的停电信息。
 
-3. 要发送消息的群请在手机微信群设置中，选中'保存到通讯录'，否则本系统可能获取不到。
+3. 消息模板在 '信息模版' 文件夹中，一个txt文件即一个模版，可以直接用记事本打开编辑。
 
-4. 如果刚打开群管理应用时，发现某个群背景为红色，刚说明该群找不到。
+4. 要发送消息的群请在手机微信群设置中，选中'保存到通讯录'，否则本系统可能获取不到。
+
+5. 如果刚打开群管理应用时，发现某个群背景为红色，刚说明该群找不到。
 
    请确认该群名称正确且已经保存到了通讯录中，如果不需要可以在'groups.csv'中将其删除。
 
-5. 为了避免因消息发送过快导致的问题，所以每发送一条消息需要等待几秒钟时间。
+6. 为了避免因消息发送过快导致的问题，所以每发送一条消息需要等待几秒钟时间。
 
-6. 发送图片的格式为: 'jpeg','jpg','gif','png'
+7. 发送图片的格式为: 'jpeg','jpg','gif','png'
 
-7. 受限于微信WEB接口，目前只能发送小于500K的图片或文件，发送大文件很可能失败。
+8. 受限于微信WEB接口，目前只能发送小于500K的图片或文件，发送大文件很可能失败。
 
-8. 发送消息时优先发送文件，没有选择文件时发送文本消息。
+9. 发送消息时优先发送文件，没有选择文件时发送文本消息。
 """
 
 def test_thumbnail():
@@ -166,8 +168,9 @@ def test_thumbnail():
         thumbnail('/Users/jiangzhenxing/Pictures/' + pic)
 
 def main():
-    logging.config.fileConfig('config/logging.conf')
-    test_thumbnail()
+    # logging.config.fileConfig('config/logging.conf')
+    # test_thumbnail()
+    print(check_licence())
 
 if __name__ == '__main__':
     main()

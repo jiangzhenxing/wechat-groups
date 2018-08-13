@@ -43,6 +43,9 @@ class Group:
     def send(self, content=None, media_id=None):
         self.wxgroup.send(content=content, media_id=media_id)
 
+    def __str__(self):
+        return '-'.join([self.bdz, self.zxl, self.fzxl, self.tq, self.name])
+
 
 class GroupTitle:
     """
@@ -182,7 +185,7 @@ class GroupList(tk.Frame):
         for group in self.groups:
             row = group.row
             if group.valid and (bdz == '' or bdz == group.bdz) and (zxl == '' or zxl == group.zxl) \
-                    and (fzxl == '' or fzxl == group.fzxl) and (tq == '' or tq == group.tq) and (keyword == '' or keyword in group.name):
+                    and (fzxl == '' or fzxl == group.fzxl) and (tq == '' or tq == group.tq) and (keyword == '' or keyword in str(group)):
                 row.show(row_num=n)
                 row.select()
                 n += 1

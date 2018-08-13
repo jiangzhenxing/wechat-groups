@@ -11,7 +11,7 @@ BDZ_DEFAULT = '请选择变电站'
 ZXL_DEFAULT = '请选择主线路'
 FZXL_DEFAULT = '请选择分支线路'
 TQ_DEFAULT = '请选择台区'
-GROUP_NAME_DEFAULT = '群名称关键词'
+GROUP_NAME_DEFAULT = '请输入关键词'
 
 logger = logging.getLogger('app')
 
